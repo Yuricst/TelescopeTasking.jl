@@ -17,7 +17,7 @@ We also precompute the following coefficient matrices:
 - $A \in \mathbb{B}^{n \times m}$ : $A_{ik} = \{0,1\}$ dictates whether target $k$ is observed by observation arc $i$; note that since $n \geq m$, this matrix is tall (or square if $n = m$).
 - $T \in \mathbb{B}^{n \times n}$ : $T_{ij} = \{0,1\}$ dictates whether slewing from arc $i$ to arc $j$ is possible (from a hardware point of view, taking into account slewing etc.)
 
-Then, the telescope observation scheduling problem (TOSP) is given by
+Then, the telescope scheduling problem is given by
 
 $$
 \begin{aligned}
