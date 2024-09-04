@@ -39,10 +39,11 @@ Overload method for showing
 """
 function Base.show(io::IO, pass::VisiblePass)
     println(io, "Visible Pass of $(pass.tle.name) (number $(pass.tle.satellite_number))")
-    println(io, "    Start: $(pass.t0) JD")
-    println(io, "    End: $(pass.tf) JD")
-    println(io, "    Max elevation: $(rad2deg(pass.azelm[2])) deg")
-    println(io, "    Duration (min): $((pass.tf - pass.t0) * 24 * 60) min")
+    println(io, "    Start:                 $(pass.t0) JD")
+    println(io, "    End:                   $(pass.tf) JD")
+    println(io, "    Max elevation:         $(rad2deg(pass.azelm[2])) deg")
+    println(io, "    Duration (min):        $((pass.tf - pass.t0) * 24 * 60) min")
+    println(io, "    Number of data ponits: $(length(pass.times))")
 end
 
 

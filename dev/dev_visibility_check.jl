@@ -55,8 +55,9 @@ r_ENU_obs = T_NED2ENU * ecef_to_ned(r_ECEF_obs, lat |> deg2rad, lon |> deg2rad, 
 
 # initial epoch of local nightfall
 jd0_obs = 2.46055755221534e6 + 0.5      # in julian date
+obs_duration_min = 8 * 60               # in minutes
 
-# criteria for valid pass
+# criteria for valid passes
 min_elevation = deg2rad(15)
 min_duration_day = 60/86400        # minimum duration: 1 minute, in days
 
@@ -66,7 +67,8 @@ eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load TLE files
-path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "iridium-33-debris.txt")
+# path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "iridium-33-debris.txt")
+path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "active.txt")
 tles_str = read(path_to_tles, String)
 
 # convert to TLE objects
@@ -75,18 +77,35 @@ tles = read_tles(tles_str)
 # initialize figure
 fig = Figure(size=(800, 800))
 ax1 = Axis(fig[1,1]; xlabel="Azimuth, deg", ylabel="Elevation, deg")
+
+fig_polar = Figure(size=(800, 400))
+ax1_polar = PolarAxis(fig_polar[1,1];)
+
 colors = cgrad(:hawaii, max(2,length(tles)))
 
 visible_arcs = []
 passes = TelescopeScheduling.VisiblePass[]
 
+_sma_max = 8000.0                               # threshold on semi-major axis to be considered as target
+m_candidate_observation_target = 0              # counter for number of candidate observation targets
+m_with_passes = 0                               # counter for number of targets with passes during observation window
+
+
 @showprogress for (idx,tle) in enumerate(tles)
+    mean_motion_rad_per_sec = tle.mean_motion * 2π / 86400
+    _sma = (398600.4418 / mean_motion_rad_per_sec^2)^(1/3)
+    if _sma > _sma_max
+        continue
+    else
+        global m_candidate_observation_target += 1
+    end
+
     _jd0_tle = tle_epoch(tle)            # initial epoch of TLE in Julian day
     _sgp4d = sgp4_init(tle)
-    _dt_min = 0.1
+    _dt_min = 0.1                        # integration time-step
     
-    t0_tle = (jd0_obs - _jd0_tle) * 24*60            # time between TLE time and observation start time, in minutes
-    dts_min_tle = t0_tle:_dt_min:(t0_tle + 12*60)    # propagate over 6 hours, in minutes
+    t0_tle = (jd0_obs - _jd0_tle) * 24*60                       # time between TLE time and observation start time, in minutes
+    dts_min_tle = t0_tle:_dt_min:(t0_tle + obs_duration_min)    # propagation time grid in minutes
 
     _rs_TEME, _vs_TEME = zeros(3, length(dts_min_tle)), zeros(3, length(dts_min_tle))
     _rs_ITRF = zeros(3, length(dts_min_tle))
@@ -114,18 +133,34 @@ passes = TelescopeScheduling.VisiblePass[]
     periodic_lines!(ax1, rad2deg.(_sph_ENU[1,:]), rad2deg.(_sph_ENU[2,:]), 30;
         color=colors[idx], linewidth=0.4)
 
+    # polar plot
+    lines!(ax1_polar, _sph_ENU[1,:], 90 .- rad2deg.(_sph_ENU[2,:]),
+            color=colors[idx], linewidth=0.4)
+
     # get visible passes
     times_jd = Array(_jd0_tle .+ dts_min_tle/60/24)
     _passes = TelescopeScheduling.azel_history_to_passes(
         tle, times_jd, _sph_ENU[1,:], _sph_ENU[2,:], min_elevation, min_duration_day)
     push!(passes, _passes...)
+
+    if length(_passes) > 0
+        global m_with_passes += 1
+    end
 end
+@printf("Observation duration: %d hours\n", obs_duration_min/60)
+@printf("Number of targets: %d\n", m_candidate_observation_target)
+@printf("Number of targets with passes: %d\n", m_with_passes)
+@printf("Number of passes: %d\n", length(passes))
 
 # plot only visible passes
 ax2 = Axis(fig[2,1]; xlabel="Azimuth, deg", ylabel="Elevation, deg")
+ax2_polar = PolarAxis(fig_polar[1,2];)
 for pass in passes
-    periodic_lines!(ax2, rad2deg.(pass.azimuths), rad2deg.(pass.elevations), 30;
-        color=:black, linewidth=0.8)
+    scatter!(ax2, rad2deg.(pass.azimuths), rad2deg.(pass.elevations), 
+             color=:black, marker=:circle)
+
+    lines!(ax2_polar, pass.azimuths, 90 .- rad2deg.(pass.elevations),
+            color=:black, linewidth=0.4)
 end
 
 # formatting plots
@@ -134,4 +169,5 @@ for _ax in [ax1, ax2]
     hlines!(_ax, [rad2deg(min_elevation)], color=:black, linestyle=:dash, linewidth=2.5)
 end
 
-display(fig)
+# display(fig)
+display(fig_polar)
