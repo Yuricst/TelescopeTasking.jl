@@ -1,0 +1,7 @@
+name = "TelescopeScheduling"
+uuid = "3ab2a548-c92d-4060-bc5c-642909f344c9"
+authors = ["Yuri <yuri.shimane@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
