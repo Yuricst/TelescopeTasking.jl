@@ -21,7 +21,7 @@ Then, the telescope scheduling problem is given by
 
 $$
 \begin{aligned}
-\min_{X,Y} \quad& \sum_{k=1}^m X_k
+\max_{X,Y} \quad& \sum_{k=1}^m X_k
 \\
 \text{such that} \quad
 &\sum_{i=1}^n A_{ik} Y_i \geq E X_k \quad \forall k=1,\ldots,m
