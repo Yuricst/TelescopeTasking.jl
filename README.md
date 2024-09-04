@@ -3,7 +3,8 @@ Deterministic operation scheduling problem for nightly observation
 
 ### Quick start
 
-`cd` to the repository, start the julia-repl, then run
+This repository is developed on Julia v1.10. Download from: [https://julialang.org/downloads/](https://julialang.org/downloads/). 
+Once julia is setup, `git clone` and `cd` to the repository, start the julia-repl, then run
 
 ```julia-repl
 julia> ]
