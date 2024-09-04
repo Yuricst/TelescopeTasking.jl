@@ -10,21 +10,21 @@ We consider a target to be observed if it has been observed at least over $E$ ar
 We consider the decision variables:
 
 - $Y \in \mathbb{B}^n$ : $Y_i = \{0,1\}$ dictates whether to observe along arc $i$
-- $\theta \in \mathbb{B}^m$ : $\theta_k = \{0,1\}$ dictates whether target $k$ is observed
+- $X \in \mathbb{B}^m$ : $X_k = \{0,1\}$ dictates whether target $k$ is observed
 
 We also precompute the following coefficient matrices:
 
 - $A \in \mathbb{B}^{n \times m}$ : $A_{ik} = \{0,1\}$ dictates whether target $k$ is observed by observation arc $i$; note that since $n \geq m$, this matrix is tall (or square if $n = m$).
-- $T \in \mathbb{B}^{n \times n}$ : $T_ij = \{0,1\}$ dictates whether slewing from arc $i$ to arc $j$ is possible (from a hardware point of view, taking into account slewing etc.)
+- $T \in \mathbb{B}^{n \times n}$ : $T_{ij} = \{0,1\}$ dictates whether slewing from arc $i$ to arc $j$ is possible (from a hardware point of view, taking into account slewing etc.)
 
 Then, the telescope observation scheduling problem (TOSP) is given by
 
 $$
 \begin{aligned}
-\min_{Y,\theta} \quad& \sum_{k=1}^m \theta_k
+\min_{X,Y} \quad& \sum_{k=1}^m X_k
 \\
 \text{such that} \quad
-&\sum_{i=1}^n A_{ik} Y_i \geq E \theta_k \quad \forall k=1,\ldots,m
+&\sum_{i=1}^n A_{ik} Y_i \geq E X_k \quad \forall k=1,\ldots,m
 \\
 &Y_i + Y_j \leq 1 + T_{ij} \quad \forall i = 1,\ldots,n-1, \quad j = i+1,\ldots,n
 \end{aligned}
