@@ -100,4 +100,11 @@ TelescopeScheduling.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey
 TelescopeScheduling.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, linewidth=1.5, color_by_target=true)
 #suptitle("E = $num_exposure")
 save(joinpath(@__DIR__, "solution_passes.png"), fig_sol)
-display(fig_sol)
+
+fig_spy = Figure(size=(800,400))
+ax_spy_A = Axis(fig_spy[1,1]; title="A matrix", xlabel="Target", ylabel="Pass", yreversed=true)
+spy!(ax_spy_A, transpose(problem.A))
+ax_spy_T = Axis(fig_spy[1,2]; title="T matrix", xlabel="Pass j", ylabel="Pass i", yreversed=true)
+spy!(ax_spy_T, transpose(problem.T))
+
+display(fig_spy)
