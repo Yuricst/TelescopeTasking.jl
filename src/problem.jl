@@ -6,12 +6,10 @@ struct TelescopeSchedulingProblem
     m::Int                      # number of targets
     A::Matrix                   # binary n-by-m matrix associating observation arcs to targets
     T::Matrix                   # binary n-by-n matrix for transition feasibility from arc i to j
-    X::Array{VariableRef, 1}    # binary m-vector denoting whether target k is observed
-    Y::Array{VariableRef, 1}    # binary n-vector denoting whether observation arc i is selected
-    model::Model                # JuMP model
+    num_exposure::Int           # number of exposures required for each target
 
     function TelescopeSchedulingProblem(
-        passes::Vector{VisiblePass}, num_exposure::Int, slew_rate::Number, solver)
+        passes::Vector{VisiblePass}, num_exposure::Int, slew_rate::Number)
         # construct target allocation matrix
         designators = unique([pass.tle.international_designator for pass in passes])
         m = length(designators)
@@ -24,27 +22,27 @@ struct TelescopeSchedulingProblem
 
         # construct transition feasibility matrix
         T = zeros(Int, n, n)
-        for i in 1:n
-            for j in 1:n
+        for i in 1:n-1
+            for j in i:n
                 if passes[i].tf < passes[j].t0      # FIXME - need to incorporate slew rate
                     T[i,j] = 1
                 end
             end
         end
 
-        # create model
-        model = Model(solver)
-        @variable(model, Y[1:n], Bin);      # whether observation arc i is selected
-        @variable(model, X[1:m], Bin);      # whether target k is observed (sufficiently many times)
+        # # create model
+        # model = Model(solver)
+        # @variable(model, Y[1:n], Bin);      # whether observation arc i is selected
+        # @variable(model, X[1:m], Bin);      # whether target k is observed (sufficiently many times)
         
-        @constraint(model, sufficient_exposure[k=1:m], 
-                    sum(A[i,k] * Y[i] for i in 1:n) >= num_exposure * X[k])
+        # @constraint(model, sufficient_exposure[k=1:m], 
+        #             sum(A[i,k] * Y[i] for i in 1:n) >= num_exposure * X[k])
 
-        @constraint(model, transition_feasibility[i=1:n-1, j=i+1:n], 
-                    Y[i] + Y[j] <= 1 + T[i,j])
+        # @constraint(model, transition_feasibility[i=1:n-1, j=i+1:n], 
+        #             Y[i] + Y[j] <= 1 + T[i,j])
 
-        @objctive(model, Max, sum(X))
-        new(n, m, A, T, X, Y, model)
+        # @objective(model, Max, sum(X))
+        new(n, m, A, T, num_exposure)
     end
 end
 
@@ -59,8 +57,25 @@ end
 """
 Instantiate JuMP model and solve
 """
-function solve(problem::TelescopeSchedulingProblem)
+function solve!(problem::TelescopeSchedulingProblem, solver)
 
+    # create model
+    model = Model(solver)
+    @variable(model, Y[1:problem.n], Bin);      # whether observation arc i is selected
+    @variable(model, X[1:problem.m], Bin);      # whether target k is observed (sufficiently many times)
+    
+    @constraint(model, sufficient_exposure[k=1:problem.m], 
+                sum(problem.A[i,k] * Y[i] for i in 1:problem.n) >= problem.num_exposure * X[k])
 
-    return model
+    @constraint(model, transition_feasibility[i=1:problem.n-1, j=i+1:problem.n], 
+                Y[i] + Y[j] <= 1 + problem.T[i,j])
+
+    @objective(model, Max, sum(X))
+    optimize!(model)
+    termination_status(model)
+
+    # get BitMatrix X and BitVector Y
+    X_val = value.(X) .> 1 - 1e-5;
+    Y_val = value.(Y) .> 1 - 1e-5;
+    return X_val, Y_val
 end

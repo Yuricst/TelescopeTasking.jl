@@ -4,8 +4,11 @@ Frame transformation development
 
 using Colors
 using ColorSchemes
-using GLMakie
 using GeometryBasics
+using GLMakie
+using GLPK
+using Gurobi
+using JuMP
 using LinearAlgebra
 using ProgressMeter: @showprogress
 using Printf: @printf
@@ -175,5 +178,19 @@ for _ax in [ax1, ax2]
     hlines!(_ax, [rad2deg(min_elevation)], color=:black, linestyle=:dash, linewidth=2.5)
 end
 
-# display(fig)
-display(fig_polar)
+# construct problem
+num_exposure = 2
+slew_rate = 0.1
+problem = TelescopeScheduling.TelescopeSchedulingProblem(passes, num_exposure, slew_rate)
+
+# set_attribute(problem.model, "tm_lim", 60)
+# set_attribute(problem.model, "msg_lev", GLPK.GLP_MSG_ALL)
+
+#solver = MOI.OptimizerWithAttributes(GLPK.Optimizer, "tm_lim" => 30, "msg_lev" => GLPK.GLP_MSG_ALL)
+solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
+    "TimeLimit" => 30)
+
+X, Y = TelescopeScheduling.solve!(problem, solver)
+selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
+println("Done!")
+
