@@ -107,4 +107,4 @@ spy!(ax_spy_A, transpose(problem.A))
 ax_spy_T = Axis(fig_spy[1,2]; title="T matrix", xlabel="Pass j", ylabel="Pass i", yreversed=true)
 spy!(ax_spy_T, transpose(problem.T))
 
-display(fig_spy)
+display(fig_sol)
