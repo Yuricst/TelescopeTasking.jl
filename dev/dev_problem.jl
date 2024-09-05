@@ -1,5 +1,5 @@
 """
-Frame transformation development
+Scheduling problem dev
 """
 
 using Colors
@@ -116,7 +116,7 @@ m_with_passes = 0                               # counter for number of targets 
     _rs_ENU = zeros(3, length(dts_min_tle))
     _sph_ENU = zeros(3, length(dts_min_tle))
 
-    @showprogress for (idx,dt_min) in enumerate(dts_min_tle)
+    for (idx,dt_min) in enumerate(dts_min_tle)
         # propagate state in TEME frame
         _rs_TEME[:,idx], _vs_TEME[:,idx] = sgp4!(_sgp4d, dt_min)
 
@@ -152,10 +152,11 @@ m_with_passes = 0                               # counter for number of targets 
     end
 
     # check number of considered satellites to match with case from Furfaro's paper
-    if m_with_passes >= 90
+    if m_with_passes >= 500
         break
     end
 end
+
 @printf("Observation duration: %d hours\n", obs_duration_min/60)
 @printf("Number of targets: %d\n", m_candidate_observation_target)
 @printf("Number of targets with passes: %d\n", m_with_passes)
@@ -192,5 +193,18 @@ solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
 
 X, Y = TelescopeScheduling.solve!(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
-println("Done!")
 
+# check validity of solution
+for k = 1:problem.m
+    if X[k] > 0.5
+        @assert sum(problem.A[i,k] * value.(Y)[i] for i in 1:problem.n) >= num_exposure
+        @printf("Target k = %d is observed %d times\n", k, num_exposure)
+    end
+end
+
+# plot of selected passes
+fig_sol = Figure(size=(600,600))
+ax_sol = PolarAxis(fig_sol[1,1])
+TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=0.2)
+TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; linewidth=1.5, color_by_target=true)
+display(fig_sol)

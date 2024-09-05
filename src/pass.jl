@@ -61,7 +61,7 @@ end
 Overload method for showing
 """
 function Base.show(io::IO, pass::VisiblePass)
-    println(io, "Visible Pass of $(pass.tle.name) (number $(pass.tle.satellite_number))")
+    println(io, "Visible Pass of $(pass.tle.name) (designator $(pass.tle.international_designator))")
     println(io, "    Exposure start:        $(pass.t0_exposure) JD")
     println(io, "    Exposure end:          $(pass.tf_exposure) JD")
     println(io, "    Max elevation:         $(rad2deg(pass.azelm[2])) deg")

@@ -9,7 +9,10 @@ struct TelescopeSchedulingProblem
     num_exposure::Int           # number of exposures required for each target
 
     function TelescopeSchedulingProblem(
-        passes::Vector{VisiblePass}, num_exposure::Int, slew_rate::Number)
+        passes::Vector{VisiblePass},
+        num_exposure::Int,
+        slew_rate::Number,
+    )
         # construct target allocation matrix
         designators = unique([pass.tle.international_designator for pass in passes])
         m = length(designators)
@@ -70,7 +73,7 @@ function solve!(problem::TelescopeSchedulingProblem, solver)
     @constraint(model, transition_feasibility[i=1:problem.n-1, j=i+1:problem.n], 
                 Y[i] + Y[j] <= 1 + problem.T[i,j])
 
-    @objective(model, Max, sum(X))
+    @objective(model, Max, sum(X) - 1/problem.m * sum(Y))
     optimize!(model)
     termination_status(model)
 
