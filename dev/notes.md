@@ -14,14 +14,14 @@ We consider the decision variables:
 
 We also precompute the following coefficient matrices:
 
-- $A \in \mathbb{B}^{n \times m}$ : $A_{ik} = \{0,1\}$ dictates whether target $k$ is observed by observation arc $i$; note that since $n \geq m$, this matrix is tall (or square if $n = m$).
+- $A \in \mathbb{B}^{n \times m}$ : $A_{ik} = \{0,1\}$ dictates observation arc $i$ corresponds to target $k$; note that since $n \geq m$, this matrix is tall (or square if $n = m$).
 - $T \in \mathbb{B}^{n \times n}$ : $T_{ij} = \{0,1\}$ dictates whether slewing from arc $i$ to arc $j$ is possible (from a hardware point of view, taking into account slewing etc.)
 
 Then, the telescope scheduling problem is given by
 
 $$
 \begin{aligned}
-\max_{X,Y} \quad& \sum_{k=1}^m X_k
+\max_{X,Y} \quad& \sum_{k=1}^m X_k - \dfrac{1}{m} \sum_{i=1}^n Y_i
 \\
 \text{such that} \quad
 &\sum_{i=1}^n A_{ik} Y_i \geq E X_k \quad \forall k=1,\ldots,m

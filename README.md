@@ -12,7 +12,16 @@ julia> ]
 (TelescopeScheduling) pkg>
 ```
 
-Part of the package dependencies make use of subset of the [SatelliteToolbox.jl](https://juliahub.com/ui/Packages/General/SatelliteToolbox) developed by the [Brazilian National Institute for Space Research (INPE)](https://www.gov.br/inpe/pt-br), namely:
+Then, run for example
+
+```julia
+julia> include("dev/dev_handle_tle.jl")
+```
+
+### Dependencies
+
+Dependencies are listed in `Project.toml`. 
+Part of the package dependencies are subsets of the [SatelliteToolbox.jl](https://juliahub.com/ui/Packages/General/SatelliteToolbox) developed by the [Brazilian National Institute for Space Research (INPE)](https://www.gov.br/inpe/pt-br), namely:
 
 - [SatelliteToolboxTle.jl](https://github.com/JuliaSpace/SatelliteToolboxTle.jl) for handling TLEs
 - [SatelliteToolboxSgp4.jl](https://github.com/JuliaSpace/SatelliteToolboxSgp4.jl) for propagation

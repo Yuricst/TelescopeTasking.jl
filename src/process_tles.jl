@@ -11,12 +11,13 @@ function tle2sma(tle::SatelliteToolboxTle.TLE)
     return (398600.4418 / mean_motion_rad_per_sec^2)^(1/3)
 end
 
-function filter!(
+function filter(
     tles::Vector{SatelliteToolboxTle.TLE};
     names_include::Union{Vector{String},Nothing} = nothing,
-    sma_max = 8000.0,
+    sma_max = 1e16,
 )
     """Filter TLEs by eccentricity"""
+    tles_filtered = SatelliteToolboxTle.TLE[]
     for tle in tles
         # check on SMA
         _sma = tle2sma(tle)
@@ -33,11 +34,15 @@ function filter!(
                 end
             end
         end
-
-        if (_sma > sma_max) || (!name_valid)
+        
+        # if not valid, remove from list
+        if (_sma > sma_max) || (name_valid == false)
             remove!(tles, tle)
+        else
+            push!(tles_filtered, tle)
         end
     end
+    return tles_filtered
 end
 
 

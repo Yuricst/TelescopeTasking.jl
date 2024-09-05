@@ -40,19 +40,6 @@ struct TelescopeSchedulingProblem
                 end
             end
         end
-
-        # # create model
-        # model = Model(solver)
-        # @variable(model, Y[1:n], Bin);      # whether observation arc i is selected
-        # @variable(model, X[1:m], Bin);      # whether target k is observed (sufficiently many times)
-        
-        # @constraint(model, sufficient_exposure[k=1:m], 
-        #             sum(A[i,k] * Y[i] for i in 1:n) >= num_exposure * X[k])
-
-        # @constraint(model, transition_feasibility[i=1:n-1, j=i+1:n], 
-        #             Y[i] + Y[j] <= 1 + T[i,j])
-
-        # @objective(model, Max, sum(X))
         new(n, m, A, T, num_exposure)
     end
 end
@@ -66,9 +53,11 @@ end
 
 
 """
-Instantiate JuMP model and solve
+    solve!(problem::TelescopeSchedulingProblem, solver)
+
+Instantiate JuMP model and solve telescope scheduling problem.
 """
-function solve!(problem::TelescopeSchedulingProblem, solver)
+function solve!(problem::TelescopeSchedulingProblem, solver; verbose::Bool = true)
 
     # create model
     model = Model(solver)
@@ -83,10 +72,15 @@ function solve!(problem::TelescopeSchedulingProblem, solver)
 
     @objective(model, Max, sum(X) - 1/problem.m * sum(Y))
     optimize!(model)
-    termination_status(model)
 
     # get BitMatrix X and BitVector Y
     X_val = value.(X) .> 1 - 1e-5;
     Y_val = value.(Y) .> 1 - 1e-5;
+
+    # print info about solution
+    if verbose
+        termination_status(model)
+        @printf("Number of observed targets: %d out of %d in FOV\n", sum(value.(X)), problem.m)
+    end
     return X_val, Y_val
 end

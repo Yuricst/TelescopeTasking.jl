@@ -19,43 +19,6 @@ using SatelliteToolboxTransformations
 include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
 
 
-function dcm_ned_to_enu()
-    T3 = [0 1 0;
-          -1 0 0;
-          0 0 1];
-    T1 = [1 0 0;
-          0 -1 0;
-          0 0 -1];
-    return T1 * T3
-end
-
-function cart2sph(rvec)
-    az = atan(rvec[2], rvec[1])
-    el = atan(rvec[3], sqrt(rvec[1]^2 + rvec[2]^2))
-    r = norm(rvec)
-    return [az; el; r]
-end
-
-function periodic_lines!(ax, xs, ys, diff_max; color=:red, linewidth=0.5)
-    i_from = 1
-    for i in 1:length(xs)-1
-        diff = abs(xs[i] - xs[i+1])
-        if diff > diff_max
-            lines!(ax, xs[i_from:i], ys[i_from:i], color=color, linewidth=linewidth)
-            i_from = i + 1
-        end
-    end
-end
-
-T_NED2ENU = dcm_ned_to_enu()
-
-# observer location in geodetic coordinates
-lat = 45.5
-lon = 135.3
-alt = 100.0         # in meters
-r_ECEF_obs = geodetic_to_ecef(lat |> deg2rad, lon |> deg2rad, alt) / 1e3    # in km
-r_ENU_obs = T_NED2ENU * ecef_to_ned(r_ECEF_obs, lat |> deg2rad, lon |> deg2rad, alt; translate = false)
-
 # initial epoch of local nightfall
 jd0_obs = 2.46055755221534e6 + 0.45     # in julian date
 
@@ -79,8 +42,8 @@ tles = read_tles(tles_str)
 @show length(tles)
 
 # filter them
-names_include = ["GLOBALSTAR", "IRIDIUM"]
-TelescopeScheduling.filter!(tles, names_include=names_include)
+names_include = ["STARLINK", ] #"GLOBALSTAR", "IRIDIUM"]
+tles = TelescopeScheduling.filter(tles, names_include = names_include)
 @show length(tles)
 
 # get passes
@@ -108,7 +71,7 @@ passes, sph_ENU_list = TelescopeScheduling.tles_to_passes(
 smas = [TelescopeScheduling.tle2sma(pass.tle) for pass in passes]
 
 # construct problem
-num_exposure = 2
+num_exposure = 3
 slew_rate = deg2rad(2)      # rad/s
 buffer_times = [15, 0]      # times in seconds
 problem = TelescopeScheduling.TelescopeSchedulingProblem(
@@ -123,20 +86,18 @@ solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
     "TimeLimit" => 30)
 X, Y = TelescopeScheduling.solve!(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
-@printf("Number of observed targets: %d\n", sum(value.(X)))
 
 # plot of selected passes
-fig_sol = Figure(size=(600,600))
-ax_sol = PolarAxis(fig_sol[1,1])
+fig_sol = Figure(size=(1000,500))
+ax_sol = PolarAxis(fig_sol[1:2,1])
 TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=1.0)
 TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; linewidth=1.5, color_by_target=true)
 
-
 # plot time-history
-fig_sol2 = Figure(size=(800, 600))
-axes = [Axis(fig_sol2[1,1]; xlabel="Time, hour", ylabel="Azimuth, deg"),
-        Axis(fig_sol2[2,1]; xlabel="Time, hour", ylabel="Elevation, deg")]
+axes = [Axis(fig_sol[1,2]; xlabel="Time, hour", ylabel="Azimuth, deg"),
+        Axis(fig_sol[2,2]; xlabel="Time, hour", ylabel="Elevation, deg")]
 TelescopeScheduling.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=1.0)
 TelescopeScheduling.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, linewidth=1.5, color_by_target=true)
-
-display(fig_sol2)
+#suptitle("E = $num_exposure")
+save(joinpath(@__DIR__, "solution_passes.png"), fig_sol)
+display(fig_sol)
