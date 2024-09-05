@@ -14,5 +14,6 @@ include("pass.jl")
 include("process_tles.jl")
 include("problem.jl")
 include("visualizations.jl")
+include("io.jl")
 
 end # module TelescopeScheduling

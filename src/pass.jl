@@ -22,38 +22,67 @@ struct VisiblePass
     times::Vector{Float64}
     azimuths::Vector{Float64}
     elevations::Vector{Float64}
+end
 
-    function VisiblePass(tle, pass_times, pass_azimuths, pass_elevations, exposure_duration::Number)
-        # compute exposure times, cented at the middle of the pass
-        tm = pass_times[div(end,2)]
-        t0_exposure = tm - exposure_duration/86400 / 2
-        tf_exposure = tm + exposure_duration/86400 / 2
 
-        # spline interpolate azimuth and elevation
-        az_itp_cubic = linear_interpolation(pass_times, pass_azimuths)
-        el_itp_cubic = linear_interpolation(pass_times, pass_elevations)
-        azel0_exposure = [az_itp_cubic(t0_exposure), el_itp_cubic(t0_exposure)]
-        azelf_exposure = [az_itp_cubic(tf_exposure), el_itp_cubic(tf_exposure)]
+"""
+Create instance of VisiblePass from TLE and pass data. This constructor is called inside
+the function `tles_to_passes()`. 
+"""
+function VisiblePass(tle, pass_times, pass_azimuths, pass_elevations, exposure_duration::Number)
+    # compute exposure times, cented at the middle of the pass
+    tm = pass_times[div(end,2)]
+    t0_exposure = tm - exposure_duration/86400 / 2
+    tf_exposure = tm + exposure_duration/86400 / 2
 
-        
-        # create instance
-        new(
-            tle,
-            pass_times[1],
-            pass_times[div(end,2)],
-            pass_times[end],
-            t0_exposure,
-            tf_exposure,
-            [pass_azimuths[1], pass_elevations[1]],
-            [pass_azimuths[div(end,2)], pass_elevations[div(end,2)]],
-            [pass_azimuths[end], pass_elevations[end]],
-            azel0_exposure,
-            azelf_exposure,
-            pass_times,
-            pass_azimuths,
-            pass_elevations
-        )
-    end
+    # spline interpolate azimuth and elevation
+    az_itp_cubic = linear_interpolation(pass_times, pass_azimuths)
+    el_itp_cubic = linear_interpolation(pass_times, pass_elevations)
+    azel0_exposure = [az_itp_cubic(t0_exposure), el_itp_cubic(t0_exposure)]
+    azelf_exposure = [az_itp_cubic(tf_exposure), el_itp_cubic(tf_exposure)]
+
+    
+    # create instance of VisiblePass
+    VisiblePass(
+        tle,
+        pass_times[1],
+        pass_times[div(end,2)],
+        pass_times[end],
+        t0_exposure,
+        tf_exposure,
+        [pass_azimuths[1], pass_elevations[1]],
+        [pass_azimuths[div(end,2)], pass_elevations[div(end,2)]],
+        [pass_azimuths[end], pass_elevations[end]],
+        azel0_exposure,
+        azelf_exposure,
+        pass_times,
+        pass_azimuths,
+        pass_elevations
+    )
+end
+
+
+
+"""
+Construct instance of VisiblePass from dictionary
+"""
+function VisiblePass(pass::Dict)
+    VisiblePass(
+        read_tle(pass["tle_string"]),
+        pass["t0"],
+        pass["tm"],
+        pass["tf"],
+        pass["t0_exposure"],
+        pass["tf_exposure"],
+        pass["azel0"],
+        pass["azelm"],
+        pass["azelf"],
+        pass["azel0_exposure"],
+        pass["azelf_exposure"],
+        pass["times"],
+        pass["azimuths"],
+        pass["elevations"]
+    )
 end
 
 
@@ -67,6 +96,24 @@ function Base.show(io::IO, pass::VisiblePass)
     println(io, "    Max elevation:         $(rad2deg(pass.azelm[2])) deg")
     println(io, "    Pass duration (min):   $((pass.tf - pass.t0) * 24 * 60) min")
     println(io, "    Number of data points: $(length(pass.times))")
+end
+
+
+"""
+    get_exposure_history(pass::VisiblePass)
+    
+Get time stamps, azimuths, and elevations during exposure
+"""
+function get_exposure_history(pass::VisiblePass)
+    # select times between exposure
+    times_after_t0 = pass.times[pass.times .>= pass.t0_exposure]
+    times_exposure = times_after_t0[times_after_t0 .<= pass.tf_exposure]
+
+    az_after_t0 = pass.azimuths[pass.times .>= pass.t0_exposure]
+    az_exposure = az_after_t0[times_after_t0 .<= pass.tf_exposure]
+    el_after_t0 = pass.elevations[pass.times .>= pass.t0_exposure]
+    el_exposure = el_after_t0[times_after_t0 .<= pass.tf_exposure]
+    return times_exposure, az_exposure, el_exposure
 end
 
 

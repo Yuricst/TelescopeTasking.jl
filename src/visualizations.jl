@@ -59,6 +59,7 @@ function polar_plot_passes!(
     linewidth = 0.4,
     color_by_target::Bool = false,
     cgrad_designator = :winter,
+    exposure_only::Bool = false,
 )
     if color_by_target == true
         designators = unique([pass.tle.international_designator for pass in passes])
@@ -72,15 +73,27 @@ function polar_plot_passes!(
         else
             _color = color
         end
-
-        lines!(ax, pass.azimuths, 90 .- rad2deg.(pass.elevations),
-            color = _color,
-            linewidth = linewidth)
+        
+        if exposure_only == false
+            lines!(ax, pass.azimuths, 90 .- rad2deg.(pass.elevations),
+                color = _color,
+                linewidth = linewidth)
+        else
+            _, az_exposure, el_exposure = get_exposure_history(pass)
+            lines!(ax, az_exposure, 90 .- rad2deg.(el_exposure),
+                color = _color,
+                #marker= :circle,
+                #markersize = 1,)
+                linewidth = linewidth)
+        end
     end
 end
 
 
 
+"""
+Plot time-history of azimuth and elevation
+"""
 function plot_time_history!(
     axes::Vector{Axis},
     passes::Vector{VisiblePass};
@@ -88,6 +101,7 @@ function plot_time_history!(
     linewidth = 0.4,
     color_by_target::Bool = false,
     cgrad_designator = :winter,
+    exposure_only::Bool = false,
     jd_ref::Union{Float64, Nothing} = nothing
 )
     if color_by_target == true
@@ -102,12 +116,25 @@ function plot_time_history!(
         else
             _color = color
         end
-        if isnothing(jd_ref)
-            times = pass.times
+        
+        if exposure_only == false
+            
+            if isnothing(jd_ref)
+                times = pass.times
+            else
+                times = (pass.times .- jd_ref) * 24 * 60
+            end
+            lines!(axes[1], times, rad2deg.(pass.azimuths), color = _color, linewidth = linewidth)
+            lines!(axes[2], times, rad2deg.(pass.elevations), color = _color, linewidth = linewidth)
         else
-            times = (pass.times .- jd_ref) * 24
+            times_exposure, az_exposure, el_exposure = get_exposure_history(pass)
+            if isnothing(jd_ref)
+                times_exposure = times_exposure
+            else
+                times_exposure = (times_exposure .- jd_ref) * 24 * 60
+            end
+            lines!(axes[1], times_exposure, rad2deg.(az_exposure), color = _color, linewidth = linewidth)
+            lines!(axes[2], times_exposure, rad2deg.(el_exposure), color = _color, linewidth = linewidth)
         end
-        lines!(axes[1], times, rad2deg.(pass.azimuths), color = _color, linewidth = linewidth)
-        lines!(axes[2], times, rad2deg.(pass.elevations), color = _color, linewidth = linewidth)
     end
 end
