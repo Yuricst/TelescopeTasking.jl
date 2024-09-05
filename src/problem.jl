@@ -80,7 +80,9 @@ function solve!(problem::TelescopeSchedulingProblem, solver; verbose::Bool = tru
     # print info about solution
     if verbose
         termination_status(model)
-        @printf("Number of observed targets: %d out of %d in FOV\n", sum(value.(X)), problem.m)
+        @printf("Observed %d out of %d targets, each with %d exposures\n",
+            sum(X_val), problem.m, problem.num_exposure)
+        @printf("Used %d out of %d passes\n", sum(Y_val), problem.n)
     end
-    return X_val, Y_val
+    return X_val, Y_val, MOI.get(model, MOI.TerminationStatus())
 end

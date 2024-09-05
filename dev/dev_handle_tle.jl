@@ -47,14 +47,14 @@ tles = read_tles(tles_str)
 names_include = ["STARLINK",]#, "GLOBALSTAR", "IRIDIUM"]
 tles = TelescopeScheduling.filter(tles, names_include = names_include)
 @show length(tles)
-tles = tles[1:100]          # only use subset of them
+tles = tles[1:1000]          # only use subset of them
 
 # save to file tles used
 TelescopeScheduling.tles_to_file(tles, joinpath(@__DIR__, "tles_used.txt"))
 
 # get passes
 obs_duration = 8 * 3600             # in seconds
-min_elevation = deg2rad(15)
+min_elevation = deg2rad(30)
 min_obs_duration = 100              # in seconds
 exposure_duration = 60              # in seconds
 observer_lat = deg2rad(45)
@@ -91,7 +91,7 @@ problem = TelescopeScheduling.TelescopeSchedulingProblem(
 solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
     "TimeLimit" => 1200)
 # solver = HiGHS.Optimizer
-X, Y = TelescopeScheduling.solve!(problem, solver)
+X, Y, status = TelescopeScheduling.solve!(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
 # save to dictionary
@@ -110,18 +110,20 @@ open(joinpath(@__DIR__, "test_solution.json"), "w") do io
     write(io, JSON.json(solution_dict))
 end
 
+
 # plot of selected passes
 fig_sol = Figure(size=(1000,500))
 ax_sol = PolarAxis(fig_sol[1:2,1])
-TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=1.0)
-TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; linewidth=1.5, color_by_target=true)
+TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=0.3)
+TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; 
+    linewidth=1.5, color_by_target=true, exposure_only=true)
 
 # plot time-history
 axes = [Axis(fig_sol[1,2]; xlabel="Time, min", ylabel="Azimuth, deg"),
         Axis(fig_sol[2,2]; xlabel="Time, min", ylabel="Elevation, deg")]
-TelescopeScheduling.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=1.0)
-TelescopeScheduling.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, linewidth=1.5, color_by_target=true)
-#suptitle("E = $num_exposure")
+TelescopeScheduling.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=0.3)
+TelescopeScheduling.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
+    linewidth=1.5, color_by_target=true, exposure_only=true)
 save(joinpath(@__DIR__, "solution_passes.png"), fig_sol)
 
 # plot sparsity of T and A
