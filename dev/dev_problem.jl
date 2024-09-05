@@ -144,7 +144,7 @@ m_with_passes = 0                               # counter for number of targets 
     # get visible passes
     times_jd = Array(_jd0_tle .+ dts_min_tle/60/24)
     _passes = TelescopeScheduling.azel_history_to_passes(
-        tle, times_jd, _sph_ENU[1,:], _sph_ENU[2,:], min_elevation, min_duration_day, exposure_duration_day)
+        tle, times_jd, _sph_ENU[1,:], _sph_ENU[2,:], min_elevation, min_duration_day*86400, exposure_duration_day*86400)
     push!(passes, _passes...)
 
     if length(_passes) > 0

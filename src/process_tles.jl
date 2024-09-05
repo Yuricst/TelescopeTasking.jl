@@ -6,6 +6,11 @@ function remove!(a, item)
 end
 
 
+function tle2sma(tle::SatelliteToolboxTle.TLE)
+    mean_motion_rad_per_sec = tle.mean_motion * 2π / 86400
+    return (398600.4418 / mean_motion_rad_per_sec^2)^(1/3)
+end
+
 function filter!(
     tles::Vector{SatelliteToolboxTle.TLE};
     names_include::Union{Vector{String},Nothing} = nothing,
@@ -14,8 +19,7 @@ function filter!(
     """Filter TLEs by eccentricity"""
     for tle in tles
         # check on SMA
-        mean_motion_rad_per_sec = tle.mean_motion * 2π / 86400
-        _sma = (398600.4418 / mean_motion_rad_per_sec^2)^(1/3)
+        _sma = tle2sma(tle)
 
         # check based on name
         if isnothing(names_include)
@@ -131,6 +135,7 @@ function tles_to_passes(
     tles::Vector{SatelliteToolboxTle.TLE},
     eop_iau1980::EopIau1980,
     jd0_obs,
+    obs_duration,
     min_elevation,
     min_obs_duration,
     exposure_duration,
@@ -139,25 +144,29 @@ function tles_to_passes(
 )
     @assert min_obs_duration >= exposure_duration "Minimum observation duration must be greater than exposure duration"
 
+    sph_ENU_list = []
+
     passes = VisiblePass[]                              # initialize vector of passes   
     dt_min = dt_sec / 60                                # convert to minutes
-    exposure_duration_day = exposure_duration / 86400   # convert to days
-    min_obs_duration_day  = min_obs_duration / 86400    # convert to days
 
     for (idx,tle) in enumerate(tles)
         # initialize time grid
         jd0_tle = tle_epoch(tle)            # initial epoch of TLE in Julian day
 
         t0_tle = (jd0_obs - jd0_tle) * 24*60                        # time between TLE time and observation start time, in minutes
-        dts_min_tle = t0_tle:dt_min:(t0_tle + min_obs_duration/60)  # propagation time grid in minutes
+        dts_min_tle = t0_tle:dt_min:(t0_tle + obs_duration/60)  # propagation time grid in minutes
         times_jd = Array(jd0_tle .+ dts_min_tle/60/24)              # time grid in Julian day
 
         # integrate over time grid and get passes
         sph_ENU = integrate_sgp4(tle, dts_min_tle, :sph, eop_iau1980, observer_lla)
         _passes = azel_history_to_passes(
             tle, times_jd, sph_ENU[1,:], sph_ENU[2,:], 
-            min_elevation, min_obs_duration_day, exposure_duration_day)
+            min_elevation, min_obs_duration, exposure_duration)
         push!(passes, _passes...)
+        push!(sph_ENU_list, sph_ENU)
     end
-    return passes
+
+    # sort passes by exposure start time
+    passes .= sort(passes)
+    return passes, sph_ENU_list
 end

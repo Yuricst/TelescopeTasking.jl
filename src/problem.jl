@@ -11,7 +11,8 @@ struct TelescopeSchedulingProblem
     function TelescopeSchedulingProblem(
         passes::Vector{VisiblePass},
         num_exposure::Int,
-        slew_rate::Number,
+        slew_rate::Number;
+        buffer_times::Vector = [0.0, 0.0],
     )
         # construct target allocation matrix
         designators = unique([pass.tle.international_designator for pass in passes])
@@ -27,7 +28,14 @@ struct TelescopeSchedulingProblem
         T = zeros(Int, n, n)
         for i in 1:n-1
             for j in i:n
-                if passes[i].tf < passes[j].t0      # FIXME - need to incorporate slew rate
+                # compute slew time required and slew time allowed
+                r_unit_i = sph2cart(vcat(passes[i].azelf_exposure, [1]))
+                r_unit_j = sph2cart(vcat(passes[j].azel0_exposure, [1]))
+                slew_time = acos(dot(r_unit_i, r_unit_j)) / slew_rate           # in seconds
+                slew_allowed = 86400 * (
+                    (passes[j].t0_exposure - buffer_times[1]/86400) - (passes[i].tf_exposure + buffer_times[2]/86400)
+                )
+                if slew_time < slew_allowed
                     T[i,j] = 1
                 end
             end
@@ -52,8 +60,8 @@ end
 
 function Base.show(io::IO, tsp::TelescopeSchedulingProblem)
     println(io, "Telescope Scheduling Problem instance")
-    println(io, "    Number of observation arcs: $(tsp.n)")
-    println(io, "    Number of targets: $(tsp.m)")
+    println(io, "    Number of observation arcs n = $(tsp.n)")
+    println(io, "    Number of targets m = $(tsp.m)")
 end
 
 

@@ -57,8 +57,7 @@ r_ECEF_obs = geodetic_to_ecef(lat |> deg2rad, lon |> deg2rad, alt) / 1e3    # in
 r_ENU_obs = T_NED2ENU * ecef_to_ned(r_ECEF_obs, lat |> deg2rad, lon |> deg2rad, alt; translate = false)
 
 # initial epoch of local nightfall
-jd0_obs = 2.46055755221534e6 + 0.5      # in julian date
-obs_duration_min = 8 * 60               # in minutes
+jd0_obs = 2.46055755221534e6 + 0.45     # in julian date
 
 # criteria for valid passes
 min_elevation = deg2rad(15)
@@ -85,22 +84,59 @@ TelescopeScheduling.filter!(tles, names_include=names_include)
 @show length(tles)
 
 # get passes
+obs_duration = 8 * 3600             # in seconds
 min_elevation = deg2rad(15)
-min_obs_duration = 10 * 600         # in seconds
+min_obs_duration = 100              # in seconds
 exposure_duration = 60              # in seconds
-observer_lat = deg2rad(20)
+observer_lat = deg2rad(45)
 observer_lon = deg2rad(100)
 observer_alt = 30.0
 observer_lla = [observer_lat, observer_lon, observer_alt]
 
-passes = TelescopeScheduling.tles_to_passes(
+passes, sph_ENU_list = TelescopeScheduling.tles_to_passes(
     tles[1:100],
     eop_iau1980,
     jd0_obs,
+    obs_duration,
     min_elevation,
     min_obs_duration,
     exposure_duration,
     observer_lla,
     dt_sec=10,
 )
-println("Done!")
+@show length(passes)
+smas = [TelescopeScheduling.tle2sma(pass.tle) for pass in passes]
+
+# construct problem
+num_exposure = 2
+slew_rate = deg2rad(2)      # rad/s
+buffer_times = [15, 0]      # times in seconds
+problem = TelescopeScheduling.TelescopeSchedulingProblem(
+    passes, num_exposure,
+    slew_rate;
+    buffer_times = buffer_times
+)
+@show problem;
+
+# solve problem
+solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
+    "TimeLimit" => 30)
+X, Y = TelescopeScheduling.solve!(problem, solver)
+selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
+@printf("Number of observed targets: %d\n", sum(value.(X)))
+
+# plot of selected passes
+fig_sol = Figure(size=(600,600))
+ax_sol = PolarAxis(fig_sol[1,1])
+TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=1.0)
+TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; linewidth=1.5, color_by_target=true)
+
+
+# plot time-history
+fig_sol2 = Figure(size=(800, 600))
+axes = [Axis(fig_sol2[1,1]; xlabel="Time, hour", ylabel="Azimuth, deg"),
+        Axis(fig_sol2[2,1]; xlabel="Time, hour", ylabel="Elevation, deg")]
+TelescopeScheduling.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=1.0)
+TelescopeScheduling.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, linewidth=1.5, color_by_target=true)
+
+display(fig_sol2)

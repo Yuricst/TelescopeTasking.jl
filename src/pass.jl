@@ -26,8 +26,8 @@ struct VisiblePass
     function VisiblePass(tle, pass_times, pass_azimuths, pass_elevations, exposure_duration::Number)
         # compute exposure times, cented at the middle of the pass
         tm = pass_times[div(end,2)]
-        t0_exposure = tm - exposure_duration/2
-        tf_exposure = tm + exposure_duration/2
+        t0_exposure = tm - exposure_duration/86400 / 2
+        tf_exposure = tm + exposure_duration/86400 / 2
 
         # spline interpolate azimuth and elevation
         az_itp_cubic = linear_interpolation(pass_times, pass_azimuths)
@@ -79,7 +79,7 @@ function azel_history_to_passes(
     azimuths::Vector{Float64},
     elevations::Vector{Float64},
     min_elevation::Number,
-    min_duration::Number,
+    min_obs_duration::Number,
     exposure_duration::Number,
 )
     passes = VisiblePass[]
@@ -104,8 +104,11 @@ function azel_history_to_passes(
             @assert in_pass == true
 
         elseif (new_pass == false) && (el <= min_elevation) && (in_pass == true) # end the pass
-            if (pass_times[end] - pass_times[1]) > min_duration
+            if (pass_times[end] - pass_times[1]) > min_obs_duration / 86400
                 push!(passes, VisiblePass(tle, pass_times, pass_azimuths, pass_elevations, exposure_duration))
+                #println("Got a pass: $((pass_times[end] - pass_times[1])*86400) sec")
+            # else
+            #     println("Too short: $((pass_times[end] - pass_times[1])*86400) sec, need $min_obs_duration sec")
             end
             new_pass = true             # toggle for next pass detection
             in_pass = false             # toggle for next pass detection
@@ -130,7 +133,7 @@ end
 """
 Filter list of visible passes
 """
-function filter(passes::Vector{VisiblePass}, E::Int)
+function filter(passes::Vector{VisiblePass}, num_exposure::Int)
     pass_to_designators = [pass.tle.international_designator for pass in passes]
     designators = unique(pass_to_designators)
 end

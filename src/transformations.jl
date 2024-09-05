@@ -17,3 +17,14 @@ function cart2sph(rvec)
     r = norm(rvec)
     return [az; el; r]
 end
+
+
+function sph2cart(azelr)
+    az = azelr[1]
+    el = azelr[2]
+    r = azelr[3]
+    x = r * cos(el) * cos(az)
+    y = r * cos(el) * sin(az)
+    z = r * sin(el)
+    return [x; y; z]
+end
