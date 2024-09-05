@@ -11,14 +11,19 @@ end
 
 
 """Convert struct to dictionary"""
-typedict(x::T) where {T} = Dict(fn=>getfield(x, fn) for fn ∈ fieldnames(T))
+#typedict(x::T) where {T} = Dict(fn=>getfield(x, fn) for fn ∈ fieldnames(T))
+function typedict(x::T) where {T}
+    #dict_symbol = Dict(fn=>getfield(x, fn) for fn ∈ fieldnames(T))
+    dict_string = Dict(string(fn)=>getfield(x, fn) for fn ∈ fieldnames(T))
+    return dict_string
+end
 
 
 """Convert pass to dictionary"""
 function pass_to_dict(pass::VisiblePass)
     pass_dict = typedict(pass)
     delete!(pass_dict, :tle)
-    pass_dict[:tle_string] = convert(String, pass.tle)
+    pass_dict["tle_string"] = convert(String, pass.tle)
     return pass_dict
 end
 

@@ -66,7 +66,7 @@ end
 """
 Construct instance of VisiblePass from dictionary
 """
-function VisiblePass(pass::Dict)
+function VisiblePass(pass::Dict, key_type = "string")
     VisiblePass(
         read_tle(pass["tle_string"]),
         pass["t0"],
