@@ -70,7 +70,7 @@ function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
     @constraint(model, transition_feasibility[i=1:problem.n-1, j=i+1:problem.n], 
                 Y[i] + Y[j] <= 1 + problem.T[i,j])
 
-    @objective(model, Max, sum(X) - 1/problem.m * sum(Y))
+    @objective(model, Max, sum(X) - 1/problem.n * sum(Y))
     optimize!(model)
 
     # get BitMatrix X and BitVector Y
