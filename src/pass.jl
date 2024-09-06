@@ -63,7 +63,6 @@ function VisiblePass(tle, pass_times, pass_azimuths, pass_elevations, exposure_d
 end
 
 
-
 """
 Construct instance of VisiblePass from dictionary
 """
@@ -179,9 +178,17 @@ end
 
 
 """
-Filter list of visible passes
+Remove passes with less than `num_exposure` exposures from list of passes
 """
 function filter(passes::Vector{VisiblePass}, num_exposure::Int)
     pass_to_designators = [pass.tle.international_designator for pass in passes]
     designators = unique(pass_to_designators)
+    passes_filtered = VisiblePass[]
+    for designator in designators
+        passes_designator = [pass for pass in passes if pass.tle.international_designator == designator]
+        if length(passes_designator) >= num_exposure
+            append!(passes_filtered, passes_designator)
+        end
+    end
+    return passes_filtered
 end

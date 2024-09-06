@@ -23,6 +23,10 @@ function tles_config_A()
 
     # save to file tles used
     TelescopeTasking.tles_to_file(tles, joinpath(@__DIR__, "../data/tles/AAS25targetA.txt"))
+
+    # print latest epoch
+    jd0_ref = maximum([tle_epoch(tle) for tle in tles])
+    @printf("Latest epoch JD: %1.6f\n", jd0_ref)
 end
 
 
@@ -41,6 +45,10 @@ function tles_config_B()
 
     # save to file tles used
     TelescopeTasking.tles_to_file(tles, joinpath(@__DIR__, "../data/tles/AAS25targetB.txt"))
+
+    # print latest epoch
+    jd0_ref = maximum([tle_epoch(tle) for tle in tles])
+    @printf("Latest epoch JD: %1.6f\n", jd0_ref)
 end
 
 
@@ -62,7 +70,10 @@ function tles_config_C()
 
     # save to file tles used
     TelescopeTasking.tles_to_file(tles, joinpath(@__DIR__, "../data/tles/AAS25targetC.txt"))
-    println("Done!")
+    
+    # print latest epoch
+    jd0_ref = maximum([tle_epoch(tle) for tle in tles])
+    @printf("Latest epoch JD: %1.6f\n", jd0_ref)
 end
 
 tles_config_A()

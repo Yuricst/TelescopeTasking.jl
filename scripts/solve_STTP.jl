@@ -18,13 +18,29 @@ using SatelliteToolboxTransformations
 
 include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
-# load config json
+
+# load config jsons
+telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP.json"))
 target_choice = "B"
-experiment_name = config["name"] * "_target$(target_choice)"
+num_exposure = 1
+solver_choice = "Gurobi"
+experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
+println(" *************** Experiment name: $experiment_name *************** ")
 
-# initial epoch of local nightfall
-jd0_obs = 2.46055755221534e6 + 0.45     # in julian date
+# choose solver
+if solver_choice == "Gurobi"
+    solver = MOI.OptimizerWithAttributes(
+        Gurobi.Optimizer,
+        "TimeLimit" => 1200,
+    )
+elseif solver_choice == "GLPK"
+    solver = GLPK.Optimizer
+elseif solver_choice == "HiGHS"
+    solver = HiGHS.Optimizer
+else
+    error("Solver choice $solver_choice not recognized!")
+end
 
 # load Earth parameters
 # eop_iau1980 = fetch_iers_eop()
@@ -33,13 +49,20 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load TLE files
 tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
-@show length(tles)
+println("There are $(length(tles)) TLEs in the file")
+
+# initial epoch of local nightfall
+jd0_ref = telescope["jd0_ref"]
+@assert maximum([tle_epoch(tle) for tle in tles]) <= jd0_ref "TLEs are later than reference JD!"
+jd0_obs = jd0_ref + 0.2
 
 # get passes
+slew_rate = deg2rad(telescope["slew_rate"])                         # rad/s
+buffer_times = [telescope["buffer_t0"], telescope["buffer_t1"]]     # times in seconds
 obs_duration = 8 * 3600             # in seconds
-min_elevation = deg2rad(30)
-min_obs_duration = 60               # in seconds
-exposure_duration = 45              # in seconds
+min_elevation = deg2rad(telescope["min_elevation"] )            # in radians
+min_obs_duration = telescope["min_obs_duration"]                # in seconds
+exposure_duration = telescope["exposure_duration"]              # in seconds
 observer_lat = deg2rad(config["observer"]["latitude"])          # degrees --> radians
 observer_lon = deg2rad(config["observer"]["longitude"])         # degrees --> radians
 observer_alt = deg2rad(config["observer"]["altitude"])          # meters
@@ -54,25 +77,20 @@ passes, _ = TelescopeTasking.tles_to_passes(
     min_obs_duration,
     exposure_duration,
     observer_lla,
-    dt_sec=10,
+    dt_sec = 10,
+    num_exposure = num_exposure,
 )
 @printf("Detected %d passes\n", length(passes))
 
 # construct problem
-num_exposure = 1
-slew_rate = deg2rad(2)      # rad/s
-buffer_times = [15, 5]      # times in seconds
 problem = TelescopeTasking.TelescopeTaskingProblem(
     passes, num_exposure,
     slew_rate;
     buffer_times = buffer_times
 )
-@show problem;
+@printf("Detected %d observable targets with %d exposures\n", problem.m, num_exposure)
 
 # solve problem
-solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
-    "TimeLimit" => 1200)
-# solver = HiGHS.Optimizer
 X, Y, status = TelescopeTasking.solve!(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
@@ -88,10 +106,9 @@ solution_dict = TelescopeTasking.solution_to_dict(
     X,
     Y,
 )
-open(joinpath(@__DIR__, "solutions/test_solution.json"), "w") do io
+open(joinpath(@__DIR__, "solutions", "solution_$(experiment_name)_$(solver_choice).json"), "w") do io
     write(io, JSON.json(solution_dict))
 end
-
 
 # plot of selected passes
 fig_sol = Figure(size=(1000,500))
@@ -106,7 +123,7 @@ axes = [Axis(fig_sol[1,2]; xlabel="Time, min", ylabel="Azimuth, deg"),
 TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=0.3)
 TelescopeTasking.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
     linewidth=1.5, color_by_target=true, exposure_only=true)
-save(joinpath(@__DIR__, "plots/solution_passes.png"), fig_sol)
+save(joinpath(@__DIR__, "plots", "passes_$(experiment_name)_$(solver_choice).png"), fig_sol)
 
 # plot sparsity of T and A
 fig_spy = Figure(size=(800,400))

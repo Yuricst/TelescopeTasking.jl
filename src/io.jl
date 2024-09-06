@@ -42,6 +42,14 @@ function solution_to_dict(
     X::Union{BitVector, Vector{Bool}},
     Y::Union{BitVector, Vector{Bool}},
 )
+    # extract problem dimensions
+    m = length(X)
+    n = length(Y)
+
+    # compute quality quality_metrics
+    eta = get_temporal_efficiency(obs_duration, exposure_duration, sum(Y))
+    L = get_nonexposure_distance(passes, Y)
+
     # create list of visible passes dictionaries
     passes_dict = [pass_to_dict(pass) for pass in passes]
     return Dict(
@@ -54,5 +62,9 @@ function solution_to_dict(
         "observer_lla" => observer_lla,
         "X" => X,
         "Y" => Y,
+        "eta" => eta,
+        "L" => L,
+        "m" => m,
+        "n" => n,
     )
 end

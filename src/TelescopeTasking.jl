@@ -14,6 +14,7 @@ include("pass.jl")
 include("process_tles.jl")
 include("problem.jl")
 include("visualizations.jl")
+include("quality_metrics.jl")
 include("io.jl")
 
 end # module TelescopeTasking
