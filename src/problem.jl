@@ -58,7 +58,10 @@ end
 Instantiate JuMP model and solve telescope scheduling problem.
 """
 function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
-    @assert problem.m > 0 "No targets detected"
+    if problem.m == 0 
+        println("WARNING: no targets detected!")
+        return zeros(Int, problem.m), zeros(Int, problem.n), NaN
+    end
 
     # create model
     model = Model(solver)

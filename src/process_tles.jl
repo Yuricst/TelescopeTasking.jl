@@ -11,6 +11,13 @@ function tle2sma(tle::SatelliteToolboxTle.TLE)
     return (398600.4418 / mean_motion_rad_per_sec^2)^(1/3)
 end
 
+
+function tle2period(tle::SatelliteToolboxTle.TLE)
+    return 86400/tle.mean_motion
+end
+
+
+
 function filter(
     tles::Vector{SatelliteToolboxTle.TLE};
     names_include::Union{Vector{String},Nothing} = nothing,
