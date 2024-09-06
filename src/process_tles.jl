@@ -83,7 +83,9 @@ function integrate_sgp4(
 
     # observer location in ENU
     T_NED2ENU = dcm_ned_to_enu()
-    r_ECEF_obs = geodetic_to_ecef(observer_lla[1], observer_lla[2], observer_lla[3]) / 1e3    # in km
+
+    # geodetic_to_ecef() expects h in m and returns in m; we convert to in km
+    r_ECEF_obs = geodetic_to_ecef(observer_lla[1], observer_lla[2], observer_lla[3]) / 1e3
     r_ENU_obs = T_NED2ENU * ecef_to_ned(r_ECEF_obs, observer_lla[1], observer_lla[2], observer_lla[3]; translate = false)
 
     for (idx,dt_min) in enumerate(dts_min)
@@ -134,7 +136,7 @@ end
     )
 
 Construct vector of visible passes from vector of TLEs.
-All time arguments except jd0 are in seconds.
+All time arguments except jd0 are in seconds. 
 """
 function tles_to_passes(
     tles::Vector{SatelliteToolboxTle.TLE},

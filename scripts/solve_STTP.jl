@@ -18,14 +18,13 @@ using SatelliteToolboxTransformations
 
 include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
+# load config json
+config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP.json"))
+target_choice = "B"
+experiment_name = config["name"] * "_target$(target_choice)"
 
 # initial epoch of local nightfall
 jd0_obs = 2.46055755221534e6 + 0.45     # in julian date
-
-# criteria for valid passes
-min_elevation = deg2rad(15)
-min_duration_day = 60/86400        # minimum duration: 1 minute, in days
-exposure_duration_day = 45/86400   # exposure duration: 45 seconds, in days
 
 # load Earth parameters
 # eop_iau1980 = fetch_iers_eop()
@@ -33,29 +32,20 @@ eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load TLE files
-tles = SatelliteToolboxTle.TLE[]
-files = ["cosmos-1408-debris.txt", "cosmos-2251-debris.txt", "fengyun-1c-debris.txt", "iridium-33-debris.txt"]
-for file in files
-    _path_to_tles = joinpath(@__DIR__, "..", "data", "tles", file)
-    _tles_str = read(_path_to_tles, String)
-    append!(tles, read_tles(_tles_str))
-end
+tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
 @show length(tles)
-
-# save to file tles used
-TelescopeTasking.tles_to_file(tles, joinpath(@__DIR__, "tles_used.txt"))
 
 # get passes
 obs_duration = 8 * 3600             # in seconds
 min_elevation = deg2rad(30)
-min_obs_duration = 100              # in seconds
-exposure_duration = 60              # in seconds
-observer_lat = deg2rad(45)
-observer_lon = deg2rad(100)
-observer_alt = 30.0
+min_obs_duration = 60               # in seconds
+exposure_duration = 45              # in seconds
+observer_lat = deg2rad(config["observer"]["latitude"])          # degrees --> radians
+observer_lon = deg2rad(config["observer"]["longitude"])         # degrees --> radians
+observer_alt = deg2rad(config["observer"]["altitude"])          # meters
 observer_lla = [observer_lat, observer_lon, observer_alt]
 
-passes, sph_ENU_list = TelescopeTasking.tles_to_passes(
+passes, _ = TelescopeTasking.tles_to_passes(
     tles,
     eop_iau1980,
     jd0_obs,
@@ -66,8 +56,7 @@ passes, sph_ENU_list = TelescopeTasking.tles_to_passes(
     observer_lla,
     dt_sec=10,
 )
-@show length(passes)
-smas = [TelescopeTasking.tle2sma(pass.tle) for pass in passes]       # for sanity check
+@printf("Detected %d passes\n", length(passes))
 
 # construct problem
 num_exposure = 1
@@ -99,7 +88,7 @@ solution_dict = TelescopeTasking.solution_to_dict(
     X,
     Y,
 )
-open(joinpath(@__DIR__, "test_solution.json"), "w") do io
+open(joinpath(@__DIR__, "solutions/test_solution.json"), "w") do io
     write(io, JSON.json(solution_dict))
 end
 
@@ -117,7 +106,7 @@ axes = [Axis(fig_sol[1,2]; xlabel="Time, min", ylabel="Azimuth, deg"),
 TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=0.3)
 TelescopeTasking.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
     linewidth=1.5, color_by_target=true, exposure_only=true)
-save(joinpath(@__DIR__, "solution_passes.png"), fig_sol)
+save(joinpath(@__DIR__, "plots/solution_passes.png"), fig_sol)
 
 # plot sparsity of T and A
 fig_spy = Figure(size=(800,400))

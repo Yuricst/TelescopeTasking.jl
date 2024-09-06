@@ -1,0 +1,17 @@
+{
+    "name": "MTTP1",
+    "observers": [
+        {
+            "latitude": 33.749,
+            "longitude": -84.388,
+            "altitude": 336.0,
+            "city": "Atlanta"
+        },
+        {
+            "latitude": 13.754,
+            "longitude": 100.501,
+            "altitude": 12,
+            "city": "Bangkok"
+        }
+    ]
+}

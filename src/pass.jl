@@ -31,16 +31,17 @@ the function `tles_to_passes()`.
 """
 function VisiblePass(tle, pass_times, pass_azimuths, pass_elevations, exposure_duration::Number)
     # compute exposure times, cented at the middle of the pass
-    tm = pass_times[div(end,2)]
+    tm = (pass_times[1] + pass_times[end]) / 2 
     t0_exposure = tm - exposure_duration/86400 / 2
     tf_exposure = tm + exposure_duration/86400 / 2
 
     # spline interpolate azimuth and elevation
     az_itp_cubic = linear_interpolation(pass_times, pass_azimuths)
     el_itp_cubic = linear_interpolation(pass_times, pass_elevations)
+    @assert pass_times[1] <= t0_exposure <= pass_times[end]
+    @assert pass_times[1] <= tf_exposure <= pass_times[end]
     azel0_exposure = [az_itp_cubic(t0_exposure), el_itp_cubic(t0_exposure)]
     azelf_exposure = [az_itp_cubic(tf_exposure), el_itp_cubic(tf_exposure)]
-
     
     # create instance of VisiblePass
     VisiblePass(
@@ -66,7 +67,7 @@ end
 """
 Construct instance of VisiblePass from dictionary
 """
-function VisiblePass(pass::Dict, key_type = "string")
+function VisiblePass(pass::Dict)
     VisiblePass(
         read_tle(pass["tle_string"]),
         pass["t0"],
