@@ -3,7 +3,7 @@
 using Test
 using SatelliteToolboxTransformations
 
-include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
+include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 @testset "Test for IO with passes" begin
     # load Earth parameters
@@ -25,7 +25,7 @@ include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
     observer_alt = 30.0
     observer_lla = [observer_lat, observer_lon, observer_alt]
 
-    passes, _ = TelescopeScheduling.tles_to_passes(
+    passes, _ = TelescopeTasking.tles_to_passes(
         tles,
         eop_iau1980,
         jd0_obs,
@@ -38,10 +38,10 @@ include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
     )
 
     # convert them to dictionaries
-    passes_dict = [TelescopeScheduling.pass_to_dict(pass) for pass in passes]
+    passes_dict = [TelescopeTasking.pass_to_dict(pass) for pass in passes]
 
     # reconstruct passes
-    passes_reconstruct = [TelescopeScheduling.VisiblePass(pass_dict) for pass_dict in passes_dict]
+    passes_reconstruct = [TelescopeTasking.VisiblePass(pass_dict) for pass_dict in passes_dict]
 
     # tests
     for (p1,p2) in zip(passes, passes_reconstruct)

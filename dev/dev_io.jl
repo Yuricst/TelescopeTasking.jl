@@ -16,7 +16,7 @@ using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
-include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
+include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 # load Earth parameters
 eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
@@ -34,9 +34,9 @@ min_obs_duration = solution_dict["min_obs_duration"]
 exposure_duration = solution_dict["exposure_duration"]
 observer_lla = solution_dict["observer_lla"]
 
-passes = [TelescopeScheduling.VisiblePass(pass_dict) for pass_dict in solution_dict["passes_dict"]]
+passes = [TelescopeTasking.VisiblePass(pass_dict) for pass_dict in solution_dict["passes_dict"]]
 # recreate passes for making sure it is correctly ordered
-passes2, _ = TelescopeScheduling.tles_to_passes(
+passes2, _ = TelescopeTasking.tles_to_passes(
     tles,
     eop_iau1980,
     jd0_obs,
@@ -62,15 +62,15 @@ selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 # plot of selected passes
 fig_sol = Figure(size=(1000,500))
 ax_sol = PolarAxis(fig_sol[1:2,1])
-TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=1.0)
-TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; 
+TelescopeTasking.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=1.0)
+TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes; 
     linewidth=1.5, color_by_target=true, exposure_only=true)
 
 # plot time-history
 axes = [Axis(fig_sol[1,2]; xlabel="Time, min", ylabel="Azimuth, deg"),
         Axis(fig_sol[2,2]; xlabel="Time, min", ylabel="Elevation, deg")]
-TelescopeScheduling.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=1.0)
-TelescopeScheduling.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
+TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=1.0)
+TelescopeTasking.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
     linewidth=1.5, color_by_target=true, exposure_only=true)
 #suptitle("E = $num_exposure")
 save(joinpath(@__DIR__, "solution_passes.png"), fig_sol)

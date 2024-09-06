@@ -1,14 +1,14 @@
 """Struct containing telescope observation scheduling problem information"""
 
 
-struct TelescopeSchedulingProblem
+struct TelescopeTaskingProblem
     n::Int                      # number of observation arcs
     m::Int                      # number of targets
     A::Matrix                   # binary n-by-m matrix associating observation arcs to targets
     T::Matrix                   # binary n-by-n matrix for transition feasibility from arc i to j
     num_exposure::Int           # number of exposures required for each target
 
-    function TelescopeSchedulingProblem(
+    function TelescopeTaskingProblem(
         passes::Vector{VisiblePass},
         num_exposure::Int,
         slew_rate::Number;
@@ -45,7 +45,7 @@ struct TelescopeSchedulingProblem
 end
 
 
-function Base.show(io::IO, tsp::TelescopeSchedulingProblem)
+function Base.show(io::IO, tsp::TelescopeTaskingProblem)
     println(io, "Telescope Scheduling Problem instance")
     println(io, "    Number of observation arcs n = $(tsp.n)")
     println(io, "    Number of targets m = $(tsp.m)")
@@ -53,11 +53,11 @@ end
 
 
 """
-    solve!(problem::TelescopeSchedulingProblem, solver)
+    solve!(problem::TelescopeTaskingProblem, solver)
 
 Instantiate JuMP model and solve telescope scheduling problem.
 """
-function solve!(problem::TelescopeSchedulingProblem, solver; verbose::Bool = true)
+function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
 
     # create model
     model = Model(solver)

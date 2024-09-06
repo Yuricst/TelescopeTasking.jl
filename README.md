@@ -1,4 +1,4 @@
-# TelescopeScheduling.jl
+# TelescopeTasking.jl
 Deterministic operation scheduling problem for nightly observation
 
 ### Quick start
@@ -9,7 +9,7 @@ Once julia is setup, `git clone` and `cd` to the repository, start the julia-rep
 ```julia
 julia> ]
 (@v1.10) pkg> activate .
-(TelescopeScheduling) pkg>
+(TelescopeTasking) pkg>
 ```
 
 Then, run for example

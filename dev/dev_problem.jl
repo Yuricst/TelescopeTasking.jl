@@ -16,7 +16,7 @@ using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
-include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
+include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 
 function dcm_ned_to_enu()
@@ -88,7 +88,7 @@ ax1_polar = PolarAxis(fig_polar[1,1];)
 colors = cgrad(:hawaii, max(2,length(tles)))
 
 visible_arcs = []
-passes = TelescopeScheduling.VisiblePass[]
+passes = TelescopeTasking.VisiblePass[]
 
 _sma_max = 8000.0                               # threshold on semi-major axis to be considered as target
 m_candidate_observation_target = 0              # counter for number of candidate observation targets
@@ -143,7 +143,7 @@ m_with_passes = 0                               # counter for number of targets 
 
     # get visible passes
     times_jd = Array(_jd0_tle .+ dts_min_tle/60/24)
-    _passes = TelescopeScheduling.azel_history_to_passes(
+    _passes = TelescopeTasking.azel_history_to_passes(
         tle, times_jd, _sph_ENU[1,:], _sph_ENU[2,:], min_elevation, min_duration_day*86400, exposure_duration_day*86400)
     push!(passes, _passes...)
 
@@ -182,7 +182,7 @@ end
 # construct problem
 num_exposure = 2
 slew_rate = 0.1
-problem = TelescopeScheduling.TelescopeSchedulingProblem(passes, num_exposure, slew_rate)
+problem = TelescopeTasking.TelescopeTaskingProblem(passes, num_exposure, slew_rate)
 
 # set_attribute(problem.model, "tm_lim", 60)
 # set_attribute(problem.model, "msg_lev", GLPK.GLP_MSG_ALL)
@@ -191,7 +191,7 @@ problem = TelescopeScheduling.TelescopeSchedulingProblem(passes, num_exposure, s
 solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
     "TimeLimit" => 30)
 
-X, Y = TelescopeScheduling.solve!(problem, solver)
+X, Y = TelescopeTasking.solve!(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
 # check validity of solution
@@ -205,6 +205,6 @@ end
 # plot of selected passes
 fig_sol = Figure(size=(600,600))
 ax_sol = PolarAxis(fig_sol[1,1])
-TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=0.2)
-TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; linewidth=1.5, color_by_target=true)
+TelescopeTasking.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=0.2)
+TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes; linewidth=1.5, color_by_target=true)
 display(fig_sol)

@@ -13,7 +13,7 @@ using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
-include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
+include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 
 function dcm_ned_to_enu()
@@ -85,7 +85,7 @@ ax1_polar = PolarAxis(fig_polar[1,1];)
 colors = cgrad(:hawaii, max(2,length(tles)))
 
 visible_arcs = []
-passes = TelescopeScheduling.VisiblePass[]
+passes = TelescopeTasking.VisiblePass[]
 
 _sma_max = 8000.0                               # threshold on semi-major axis to be considered as target
 m_candidate_observation_target = 0              # counter for number of candidate observation targets
@@ -140,7 +140,7 @@ m_with_passes = 0                               # counter for number of targets 
 
     # get visible passes
     times_jd = Array(_jd0_tle .+ dts_min_tle/60/24)
-    _passes = TelescopeScheduling.azel_history_to_passes(
+    _passes = TelescopeTasking.azel_history_to_passes(
         tle, times_jd, _sph_ENU[1,:], _sph_ENU[2,:], min_elevation, min_duration_day, exposure_duration_day)
     push!(passes, _passes...)
 

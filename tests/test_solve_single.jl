@@ -16,7 +16,7 @@ using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
-include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
+include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 @testset "Test for solving instance of single telescope scheduling problem" begin
     # initial epoch of local nightfall
@@ -38,7 +38,7 @@ include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
 
     # filter them
     names_include = ["STARLINK",]#, "GLOBALSTAR", "IRIDIUM"]
-    tles = TelescopeScheduling.filter(tles, names_include = names_include)
+    tles = TelescopeTasking.filter(tles, names_include = names_include)
     @show length(tles)
     tles = tles[1:100]          # only use subset of them
 
@@ -52,7 +52,7 @@ include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
     observer_alt = 30.0
     observer_lla = [observer_lat, observer_lon, observer_alt]
 
-    passes, sph_ENU_list = TelescopeScheduling.tles_to_passes(
+    passes, sph_ENU_list = TelescopeTasking.tles_to_passes(
         tles,
         eop_iau1980,
         jd0_obs,
@@ -63,13 +63,13 @@ include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
         observer_lla,
         dt_sec=10,
     )
-    smas = [TelescopeScheduling.tle2sma(pass.tle) for pass in passes]       # for sanity check
+    smas = [TelescopeTasking.tle2sma(pass.tle) for pass in passes]       # for sanity check
 
     # construct problem
     num_exposure = 2
     slew_rate = deg2rad(2)      # rad/s
     buffer_times = [15, 0]      # times in seconds
-    problem = TelescopeScheduling.TelescopeSchedulingProblem(
+    problem = TelescopeTasking.TelescopeTaskingProblem(
         passes, num_exposure,
         slew_rate;
         buffer_times = buffer_times
@@ -77,6 +77,6 @@ include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
 
     # solve problem
     solver = HiGHS.Optimizer
-    X, Y, status = TelescopeScheduling.solve!(problem, solver; verbose=false)
+    X, Y, status = TelescopeTasking.solve!(problem, solver; verbose=false)
     @test status == MOI.OPTIMAL
 end

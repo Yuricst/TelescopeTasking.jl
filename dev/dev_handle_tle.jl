@@ -18,7 +18,7 @@ using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
-include(joinpath(@__DIR__, "../src/TelescopeScheduling.jl"))
+include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 
 # initial epoch of local nightfall
@@ -45,12 +45,12 @@ tles = read_tles(tles_str)
 
 # filter them
 names_include = ["STARLINK",]#, "GLOBALSTAR", "IRIDIUM"]
-tles = TelescopeScheduling.filter(tles, names_include = names_include)
+tles = TelescopeTasking.filter(tles, names_include = names_include)
 @show length(tles)
 tles = tles[1:1000]          # only use subset of them
 
 # save to file tles used
-TelescopeScheduling.tles_to_file(tles, joinpath(@__DIR__, "tles_used.txt"))
+TelescopeTasking.tles_to_file(tles, joinpath(@__DIR__, "tles_used.txt"))
 
 # get passes
 obs_duration = 8 * 3600             # in seconds
@@ -62,7 +62,7 @@ observer_lon = deg2rad(100)
 observer_alt = 30.0
 observer_lla = [observer_lat, observer_lon, observer_alt]
 
-passes, sph_ENU_list = TelescopeScheduling.tles_to_passes(
+passes, sph_ENU_list = TelescopeTasking.tles_to_passes(
     tles,
     eop_iau1980,
     jd0_obs,
@@ -74,13 +74,13 @@ passes, sph_ENU_list = TelescopeScheduling.tles_to_passes(
     dt_sec=10,
 )
 @show length(passes)
-smas = [TelescopeScheduling.tle2sma(pass.tle) for pass in passes]       # for sanity check
+smas = [TelescopeTasking.tle2sma(pass.tle) for pass in passes]       # for sanity check
 
 # construct problem
 num_exposure = 2
 slew_rate = deg2rad(2)      # rad/s
 buffer_times = [15, 0]      # times in seconds
-problem = TelescopeScheduling.TelescopeSchedulingProblem(
+problem = TelescopeTasking.TelescopeTaskingProblem(
     passes, num_exposure,
     slew_rate;
     buffer_times = buffer_times
@@ -91,11 +91,11 @@ problem = TelescopeScheduling.TelescopeSchedulingProblem(
 solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
     "TimeLimit" => 1200)
 # solver = HiGHS.Optimizer
-X, Y, status = TelescopeScheduling.solve!(problem, solver)
+X, Y, status = TelescopeTasking.solve!(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
 # save to dictionary
-solution_dict = TelescopeScheduling.solution_to_dict(
+solution_dict = TelescopeTasking.solution_to_dict(
     passes,
     jd0_obs,
     obs_duration,
@@ -114,15 +114,15 @@ end
 # plot of selected passes
 fig_sol = Figure(size=(1000,500))
 ax_sol = PolarAxis(fig_sol[1:2,1])
-TelescopeScheduling.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=0.3)
-TelescopeScheduling.polar_plot_passes!(ax_sol, selected_passes; 
+TelescopeTasking.polar_plot_passes!(ax_sol, passes; color=:grey, linewidth=0.3)
+TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes; 
     linewidth=1.5, color_by_target=true, exposure_only=true)
 
 # plot time-history
 axes = [Axis(fig_sol[1,2]; xlabel="Time, min", ylabel="Azimuth, deg"),
         Axis(fig_sol[2,2]; xlabel="Time, min", ylabel="Elevation, deg")]
-TelescopeScheduling.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=0.3)
-TelescopeScheduling.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
+TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=0.3)
+TelescopeTasking.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
     linewidth=1.5, color_by_target=true, exposure_only=true)
 save(joinpath(@__DIR__, "solution_passes.png"), fig_sol)
 

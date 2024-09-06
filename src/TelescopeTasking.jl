@@ -1,4 +1,4 @@
-module TelescopeScheduling
+module TelescopeTasking
 
 using GLMakie
 using JuMP
@@ -16,4 +16,4 @@ include("problem.jl")
 include("visualizations.jl")
 include("io.jl")
 
-end # module TelescopeScheduling
+end # module TelescopeTasking
