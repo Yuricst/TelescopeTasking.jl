@@ -1,8 +1,9 @@
 {
     "name": "STTP",
     "observer": {
-        "latitude": 32.581,
-        "longitude": -110.847,
-        "altitude": 1172.0
+        "latitude": 33.749,
+        "longitude": -84.388,
+        "altitude": 336.0,
+        "city": "Atlanta"
     }
 }
