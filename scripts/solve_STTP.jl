@@ -26,7 +26,7 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 # load config jsons
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP.json"))
-target_choice = "C"
+target_choice = "A"
 solver_choice = "Gurobi"
 
 # choose solver
