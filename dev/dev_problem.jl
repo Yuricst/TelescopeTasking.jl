@@ -191,7 +191,7 @@ problem = TelescopeTasking.TelescopeTaskingProblem(passes, num_exposure, slew_ra
 solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
     "TimeLimit" => 30)
 
-X, Y = TelescopeTasking.solve!(problem, solver)
+X, Y = TelescopeTasking.solve(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
 # check validity of solution

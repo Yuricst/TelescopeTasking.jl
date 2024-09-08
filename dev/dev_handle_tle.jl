@@ -91,7 +91,7 @@ problem = TelescopeTasking.TelescopeTaskingProblem(
 solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
     "TimeLimit" => 1200)
 # solver = HiGHS.Optimizer
-X, Y, status = TelescopeTasking.solve!(problem, solver)
+X, Y, status = TelescopeTasking.solve(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
 # save to dictionary

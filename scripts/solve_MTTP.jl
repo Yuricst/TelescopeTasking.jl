@@ -27,7 +27,7 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP1.json"))
 target_choice = "B"
-solver_choice = "Gurobi"
+solver_choice = "HiGHS"
 
 # choose solver
 if solver_choice == "Gurobi"
@@ -123,7 +123,7 @@ for num_exposure in num_exposures
     end
 
     # solve problem
-    _X, _Y, _Y_per_telescope, _status = TelescopeTasking.solve!(_problem, solver; verbose = true)
+    _X, _Y, _Y_per_telescope, _solve_stats_dict = TelescopeTasking.solve(_problem, solver; verbose = true)
     push!(times_measure, time())
     @printf("Finished solve; interval time: %1.4f sec\n", times_measure[end] - times_measure[end-1])
 
@@ -143,4 +143,6 @@ for num_exposure in num_exposures
     open(joinpath(@__DIR__, "solutions", "solution_$(_experiment_name)_$(solver_choice).json"), "w") do io
         write(io, JSON.json(_solution_dict))
     end
+
+    @show _solve_stats_dict
 end

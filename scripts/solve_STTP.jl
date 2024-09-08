@@ -102,7 +102,7 @@ for num_exposure in num_exposures
         problem.m, num_exposure, times_measure[end] - times_measure[end-1])
 
     # solve problem
-    _X, _Y, _status = TelescopeTasking.solve!(problem, solver; verbose = true)
+    _X, _Y, _status = TelescopeTasking.solve(problem, solver; verbose = true)
     push!(times_measure, time())
     @printf("Finished solve; interval time: %1.4f sec\n", times_measure[end] - times_measure[end-1])
 

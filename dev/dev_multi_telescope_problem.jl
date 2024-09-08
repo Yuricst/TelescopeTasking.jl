@@ -96,7 +96,7 @@ problem = TelescopeTasking.MultiTelescopeTaskingProblem(
 solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
     "TimeLimit" => 1200)
 # solver = HiGHS.Optimizer
-X, Y, Y_per_telescope, status = TelescopeTasking.solve!(problem, solver)
+X, Y, Y_per_telescope, solve_stats_dict = TelescopeTasking.solve(problem, solver)
 selected_passes_per_telescope = [
     [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
     for (passes,Y) in zip(passes_per_telescope, Y_per_telescope)

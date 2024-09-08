@@ -1,6 +1,16 @@
 """Struct containing telescope observation scheduling problem information"""
 
 
+"""
+Get statistics about the model solve into a dictionary
+"""
+function get_solve_statistics(model)
+    return Dict(
+        "status" => MOI.get(model, MOI.TerminationStatus()),
+        "solve_time" => solve_time(model),
+    )
+end
+
 struct TelescopeTaskingProblem
     n::Int                      # number of observation arcs
     m::Int                      # number of targets
@@ -62,11 +72,11 @@ end
 
 
 """
-    solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
+    solve(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
 
-Instantiate JuMP model and solve telescope scheduling problem.
+Instantiate JuMP model and solve single telescope scheduling problem.
 """
-function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
+function solve(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
     if problem.m == 0 
         println("WARNING: no targets detected!")
         return zeros(Int, problem.m), zeros(Int, problem.n), NaN
@@ -76,7 +86,7 @@ function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
     tstart = time()
 
     # create model
-    model = Model(solver)
+    model =  Model(solver, add_bridges = false)
     @variable(model, Y[1:problem.n], Bin);      # whether observation arc i is selected
     @variable(model, X[1:problem.m], Bin);      # whether target k is observed (sufficiently many times)
     @printf("Created variables; %1.4f sec\n", time() - tstart)
@@ -109,7 +119,7 @@ function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
             sum(X_val), problem.m, problem.num_exposure)
         @printf("Used %d out of %d passes\n", sum(Y_val), problem.n)
     end
-    return X_val, Y_val, MOI.get(model, MOI.TerminationStatus())
+    return X_val, Y_val, get_solve_statistics(model)
 end
 
 
@@ -240,13 +250,17 @@ function decompose_multitelescope_Y(problem::MultiTelescopeTaskingProblem, Y::Un
 end
 
 
-function solve!(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = true)
+"""
+    solve(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = true)
 
+Instantiate JuMP model and solve multi telescope scheduling problem.
+"""
+function solve(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = true)
     # start measuring time
     tstart = time()
 
     # create model
-    model = Model(solver)
+    model = Model(solver, add_bridges = false)
     N = sum(problem.n_per_telescope)
     @variable(model, Y[1:problem.n_total], Bin);      # whether observation arc i is selected
     @variable(model, X[1:problem.m], Bin);            # whether target k is observed (sufficiently many times)
@@ -300,6 +314,6 @@ function solve!(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = t
                 q, sum(Y_per_telescope[q]), problem.n_per_telescope[q])
         end
     end
-    return X_val, Y_val, Y_per_telescope, MOI.get(model, MOI.TerminationStatus())
+    return X_val, Y_val, Y_per_telescope, get_solve_statistics(model)
 end
 

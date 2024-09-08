@@ -77,6 +77,6 @@ include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
     # solve problem
     solver = HiGHS.Optimizer
-    X, Y, status = TelescopeTasking.solve!(problem, solver; verbose=false)
+    X, Y, status = TelescopeTasking.solve(problem, solver; verbose=false)
     @test status == MOI.OPTIMAL
 end
