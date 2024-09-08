@@ -112,7 +112,7 @@ function MTTP_solution_to_dict(
         "eta_per_telescope" => eta_per_telescope,
         "Ls_per_telescope" => Ls_per_telescope,
         "L_per_telescope" => L_per_telescope,
-        "m" => problem.m_total,
+        "m" => problem.m,
         "n_per_telescope" => problem.n_per_telescope,
         "map_y2Y" => problem.map_y2Y,
     )

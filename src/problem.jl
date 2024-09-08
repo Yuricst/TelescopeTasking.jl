@@ -117,7 +117,7 @@ struct MultiTelescopeTaskingProblem
     n_per_telescope::Vector{Int}        # number of observation arcs per telescope
     m_per_telescope::Vector{Int}        # number of targets per telescope
     n_total::Int                        # total number of observation arcs
-    m_total::Int                        # total number of targets
+    m::Int                        # total number of targets
     A_per_telescope::Vector             # binary n-by-m matrix associating observation arcs to targets per telescope
     T_per_telescope::Vector             # binary n-by-n matrix for transition feasibility from arc i to j per telescopew_per_telescope::Vector             # priority coefficient on each target per telescope
     w::Vector                           # priority coefficient on each target per telescope
@@ -136,13 +136,13 @@ struct MultiTelescopeTaskingProblem
 
         # get weights
         designators = unique([pass.tle.international_designator for pass in vcat(passes_per_telescope...)])
-        m_total = length(designators)
+        m = length(designators)
 
         # priority coefficient on each target
         if isnothing(w)
-            w = ones(m_total)
+            w = ones(m)
         else
-            @assert length(w) == m_total "Length of w must be equal to number of targets"
+            @assert length(w) == m "Length of w must be equal to number of targets"
         end
         n_total = sum([length(passes) for passes in passes_per_telescope])
         
@@ -153,7 +153,7 @@ struct MultiTelescopeTaskingProblem
         for (q,passes) in enumerate(passes_per_telescope)
             # construct target allocation matrix
             n = length(passes)
-            A = zeros(Int, n, m_total)
+            A = zeros(Int, n, m)
             observed_names = []
             for (i, pass) in enumerate(passes)
                 k = findfirst(x -> x == pass.tle.international_designator, designators)
@@ -194,7 +194,7 @@ struct MultiTelescopeTaskingProblem
                 i_stacked += 1
             end
         end
-        new(n_per_telescope, m_per_telescope, n_total, m_total, A_per_telescope, T_per_telescope, w, num_exposure, map_y2Y)
+        new(n_per_telescope, m_per_telescope, n_total, m, A_per_telescope, T_per_telescope, w, num_exposure, map_y2Y)
     end
 end
 
@@ -249,13 +249,13 @@ function solve!(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = t
     model = Model(solver)
     N = sum(problem.n_per_telescope)
     @variable(model, Y[1:problem.n_total], Bin);      # whether observation arc i is selected
-    @variable(model, X[1:problem.m_total], Bin);      # whether target k is observed (sufficiently many times)
+    @variable(model, X[1:problem.m], Bin);            # whether target k is observed (sufficiently many times)
     @printf("Created variables; %1.4f sec\n", time() - tstart)
 
     # sufficient exposure constraint
     s = length(problem.n_per_telescope)
     @constraint(model,
-                sufficient_exposure[k=1:problem.m_total], 
+                sufficient_exposure[k=1:problem.m], 
                 sum(
                     sum(
                         problem.A_per_telescope[q][i,k] * Y[problem.map_y2Y[(q,i)]]
@@ -293,7 +293,7 @@ function solve!(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = t
     if verbose
         termination_status(model)
         @printf("Observed %d out of %d targets, each with %d exposures\n",
-            sum(X_val), problem.m_total, problem.num_exposure)
+            sum(X_val), problem.m, problem.num_exposure)
         @printf("Used %d out of %d passes\n", sum(Y_val), problem.n_total)
         for q = 1:s
             @printf("Telescope %d: %d out of %d passes used\n", 
