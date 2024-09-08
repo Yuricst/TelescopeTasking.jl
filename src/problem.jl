@@ -2,12 +2,21 @@
 
 
 """
+    get_solve_statistics(model::Model)
+
 Get statistics about the model solve into a dictionary
 """
-function get_solve_statistics(model)
+function get_solve_statistics(model::Model)
     return Dict(
-        "status" => MOI.get(model, MOI.TerminationStatus()),
+        "solver_name" => solver_name(model),
+        "status" => termination_status(model), #MOI.get(model, MOI.TerminationStatus()),
         "solve_time" => solve_time(model),
+        "relative_gap" => relative_gap(model),
+        "primal_status" => primal_status(model),
+        "dual_status" => dual_status(model),
+        "simplex_iterations" => simplex_iterations(model),
+        "barrier_iterations" => barrier_iterations(model),
+        "num_variables" => num_variables(model),
     )
 end
 
@@ -255,13 +264,17 @@ end
 
 Instantiate JuMP model and solve multi telescope scheduling problem.
 """
-function solve(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = true)
+function solve(
+    problem::MultiTelescopeTaskingProblem,
+    solver;
+    verbose::Bool = true
+)
     # start measuring time
     tstart = time()
 
     # create model
-    model = Model(solver, add_bridges = false)
-    N = sum(problem.n_per_telescope)
+    model = Model(solver; add_bridges = false)
+    #N = sum(problem.n_per_telescope)
     @variable(model, Y[1:problem.n_total], Bin);      # whether observation arc i is selected
     @variable(model, X[1:problem.m], Bin);            # whether target k is observed (sufficiently many times)
     @printf("Created variables; %1.4f sec\n", time() - tstart)
