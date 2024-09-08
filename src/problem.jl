@@ -4,6 +4,7 @@
 struct TelescopeTaskingProblem
     n::Int                      # number of observation arcs
     m::Int                      # number of targets
+    w::Vector                   # priority coefficient on each target
     A::Matrix                   # binary n-by-m matrix associating observation arcs to targets
     T::Matrix                   # binary n-by-n matrix for transition feasibility from arc i to j
     num_exposure::Int           # number of exposures required for each target
@@ -12,6 +13,7 @@ struct TelescopeTaskingProblem
         passes::Vector{VisiblePass},
         num_exposure::Int,
         slew_rate::Number;
+        w::Union{Vector,Nothing} = nothing,
         buffer_times::Vector = [0.0, 0.0],
     )
         # construct target allocation matrix
@@ -22,6 +24,13 @@ struct TelescopeTaskingProblem
         for (i, pass) in enumerate(passes)
             j = findfirst(x -> x == pass.tle.international_designator, designators)
             A[i,j] = 1
+        end
+        
+        # priority coefficient on each target
+        if isnothing(w)
+            w = ones(m)
+        else
+            @assert length(w) == m "Length of w must be equal to number of targets"
         end
 
         # construct transition feasibility matrix
@@ -40,7 +49,7 @@ struct TelescopeTaskingProblem
                 end
             end
         end
-        new(n, m, A, T, num_exposure)
+        new(n, m, w, A, T, num_exposure)
     end
 end
 
@@ -53,7 +62,7 @@ end
 
 
 """
-    solve!(problem::TelescopeTaskingProblem, solver)
+    solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
 
 Instantiate JuMP model and solve telescope scheduling problem.
 """
@@ -63,18 +72,30 @@ function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
         return zeros(Int, problem.m), zeros(Int, problem.n), NaN
     end
 
+    # start measuring time
+    tstart = time()
+
     # create model
     model = Model(solver)
     @variable(model, Y[1:problem.n], Bin);      # whether observation arc i is selected
     @variable(model, X[1:problem.m], Bin);      # whether target k is observed (sufficiently many times)
-    
+    @printf("Created variables; %1.4f sec\n", time() - tstart)
+
     @constraint(model, sufficient_exposure[k=1:problem.m], 
                 sum(problem.A[i,k] * Y[i] for i in 1:problem.n) >= problem.num_exposure * X[k])
+    @printf("Created sufficient exposure constraint; %1.4f sec\n", time() - tstart)
 
     @constraint(model, transition_feasibility[i=1:problem.n-1, j=i+1:problem.n], 
                 Y[i] + Y[j] <= 1 + problem.T[i,j])
 
-    @objective(model, Max, sum(X) - 1/problem.n * sum(Y))
+    @printf("Created transition feasibility constraint; %1.4f sec\n", time() - tstart)
+    @objective(model, Max, sum(problem.w'X) - 1/problem.n * sum(Y))
+
+    if verbose
+        @printf("Model created; elapsed time; %1.4f sec\n", time() - tstart)
+    end
+
+    # solve problem
     optimize!(model)
 
     # get BitMatrix X and BitVector Y
