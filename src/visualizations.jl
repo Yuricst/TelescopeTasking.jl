@@ -102,7 +102,8 @@ function plot_time_history!(
     color_by_target::Bool = false,
     cgrad_designator = :winter,
     exposure_only::Bool = false,
-    jd_ref::Union{Float64, Nothing} = nothing
+    jd_ref::Union{Float64, Nothing} = nothing,
+    time_multiplier::Real = 24,
 )
     if color_by_target == true
         designators = unique([pass.tle.international_designator for pass in passes])
@@ -122,7 +123,7 @@ function plot_time_history!(
             if isnothing(jd_ref)
                 times = pass.times
             else
-                times = (pass.times .- jd_ref) * 24 * 60
+                times = (pass.times .- jd_ref) * time_multiplier
             end
             lines!(axes[1], times, rad2deg.(pass.azimuths), color = _color, linewidth = linewidth)
             lines!(axes[2], times, rad2deg.(pass.elevations), color = _color, linewidth = linewidth)
@@ -131,7 +132,7 @@ function plot_time_history!(
             if isnothing(jd_ref)
                 times_exposure = times_exposure
             else
-                times_exposure = (times_exposure .- jd_ref) * 24 * 60
+                times_exposure = (times_exposure .- jd_ref) * time_multiplier
             end
             lines!(axes[1], times_exposure, rad2deg.(az_exposure), color = _color, linewidth = linewidth)
             lines!(axes[2], times_exposure, rad2deg.(el_exposure), color = _color, linewidth = linewidth)

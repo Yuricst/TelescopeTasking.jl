@@ -107,7 +107,7 @@ for num_exposure in num_exposures
     @printf("Finished solve; interval time: %1.4f sec\n", times_measure[end] - times_measure[end-1])
 
     # save to dictionary
-    _solution_dict = TelescopeTasking.solution_to_dict(
+    _solution_dict = TelescopeTasking.STTP_solution_to_dict(
         _passes,
         jd0_obs,
         obs_duration,

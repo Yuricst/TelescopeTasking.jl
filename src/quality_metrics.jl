@@ -22,7 +22,7 @@ L = sum_{i=1}^{n-1} sum_{j=i}^{n} acos(dot(r_unit_i, r_unit_j)) * Y_i * Y_j
 """
 function get_nonexposure_distance(
     passes::Vector,
-    Y::Union{BitVector, Vector{Bool}},
+    Y::Union{BitVector, Vector{Bool}, Vector{Int}},
 )
     Ls = Real[]
     n = length(passes)

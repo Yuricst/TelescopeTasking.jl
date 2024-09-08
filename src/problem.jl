@@ -213,20 +213,30 @@ end
 
 
 """
+    decompose_multitelescope_Y(n_per_telescope::Vector{Int}, map_y2Y::Dict, Y::Union{Vector,BitVector})
+
+Decompose optimal solution into per-telescope solutions
+"""
+function decompose_multitelescope_Y(n_per_telescope::Vector{Int}, map_y2Y::Dict, Y::Union{Vector,BitVector})
+    Y_per_telescope = Vector[]
+    for q in 1:length(n_per_telescope)
+        Y_per_telescope_q = zeros(Int, n_per_telescope[q])
+        for i in 1:n_per_telescope[q]
+            Y_per_telescope_q[i] = Y[map_y2Y[(q,i)]]
+        end
+        push!(Y_per_telescope, Y_per_telescope_q)
+    end
+    return Y_per_telescope
+end
+
+
+"""
     decompose_multitelescope_Y(problem::MultiTelescopeTaskingProblem, Y::Union{Vector,BitVector})
 
 Decompose optimal solution into per-telescope solutions
 """
 function decompose_multitelescope_Y(problem::MultiTelescopeTaskingProblem, Y::Union{Vector,BitVector})
-    Y_per_telescope = Vector[]
-    for q in 1:length(problem.n_per_telescope)
-        Y_per_telescope_q = zeros(Int, problem.n_per_telescope[q])
-        for i in 1:problem.n_per_telescope[q]
-            Y_per_telescope_q[i] = Y[problem.map_y2Y[(q,i)]]
-        end
-        push!(Y_per_telescope, Y_per_telescope_q)
-    end
-    return Y_per_telescope
+    return decompose_multitelescope_Y(problem.n_per_telescope, problem.map_y2Y, Y)
 end
 
 

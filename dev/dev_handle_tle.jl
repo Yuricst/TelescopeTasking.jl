@@ -95,7 +95,7 @@ X, Y, status = TelescopeTasking.solve!(problem, solver)
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
 # save to dictionary
-solution_dict = TelescopeTasking.solution_to_dict(
+solution_dict = TelescopeTasking.STTP_solution_to_dict(
     passes,
     jd0_obs,
     obs_duration,
