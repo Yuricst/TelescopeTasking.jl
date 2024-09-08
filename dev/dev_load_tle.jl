@@ -23,7 +23,7 @@ dt_min = 1.0
 r_teme, v_teme = sgp4!(sgp4d, dt_min)   # in True Equator, Mean Equinox (TEME) reference frame
 
 # propagate over 12 hours
-dts_min = 0:dt_min:12*60
+dts_min = -60:dt_min:12*60
 rs_teme, vs_teme = zeros(3, length(dts_min)), zeros(3, length(dts_min))
 for (idx,dt_min) in enumerate(dts_min)
     rs_teme[:,idx], vs_teme[:,idx] = sgp4!(sgp4d, dt_min)

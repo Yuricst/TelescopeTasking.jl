@@ -12,10 +12,10 @@ julia> ]
 (TelescopeTasking) pkg>
 ```
 
-Then, run for example
+Then, run tests to check installation is successful:
 
 ```julia
-julia> include("dev/dev_handle_tle.jl")
+julia> include("tests/runtest.jl")
 ```
 
 ### Dependencies
@@ -28,3 +28,12 @@ Part of the package dependencies are subsets of the [SatelliteToolbox.jl](https:
 - [SatelliteToolboxTransformations.jl](https://github.com/JuliaSpace/SatelliteToolboxTransformations.jl) for frame transformations
 
 The `TLE` object's structure can be found in the [SatelliteToolboxTle.jl docs page](https://juliaspace.github.io/SatelliteToolboxTle.jl/stable/man/tle_structure/). 
+
+
+### Scripts for AAS 2025
+
+Scripts for AAS 2025 are located in folder `./scripts`;
+
+- `scripts/solve_STTP.jl` : solve an instance of the STTP with $E = 1,2,3$ with chosen target set
+- `scripts/solve_MTTP.jl` : solve an instance of the MTTP with $E = 1,2,3$ with chosen target set
+

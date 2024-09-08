@@ -7,17 +7,24 @@
 Get statistics about the model solve into a dictionary
 """
 function get_solve_statistics(model::Model)
-    return Dict(
+    stats_dict = Dict(
         "solver_name" => solver_name(model),
         "status" => termination_status(model), #MOI.get(model, MOI.TerminationStatus()),
         "solve_time" => solve_time(model),
         "relative_gap" => relative_gap(model),
         "primal_status" => primal_status(model),
         "dual_status" => dual_status(model),
-        "simplex_iterations" => simplex_iterations(model),
-        "barrier_iterations" => barrier_iterations(model),
         "num_variables" => num_variables(model),
     )
+    try
+        stats_dict["simplex_iterations"] = objective_value(model)
+    catch
+    end
+    try 
+        stats_dict["barrier_iterations"] = objective_value(model)
+    catch
+    end
+    return stats_dict
 end
 
 struct TelescopeTaskingProblem
@@ -267,7 +274,8 @@ Instantiate JuMP model and solve multi telescope scheduling problem.
 function solve(
     problem::MultiTelescopeTaskingProblem,
     solver;
-    verbose::Bool = true
+    verbose::Bool = true,
+    bias_objective::Bool = false,
 )
     # start measuring time
     tstart = time()
@@ -300,7 +308,11 @@ function solve(
     end
     @printf("Created transition feasibility constraints; %1.4f sec\n", time() - tstart)
 
-    @objective(model, Max, sum(problem.w'X) - 1/problem.n_total * sum(Y))
+    if bias_objective == true
+        @objective(model, Max, sum(problem.w'X) - 1/problem.n_total * sum(Y))
+    else
+        @objective(model, Max, sum(problem.w'X))
+    end
 
     if verbose
         @printf("Model created; elapsed time; %1.4f sec\n", time() - tstart)

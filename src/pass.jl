@@ -128,6 +128,7 @@ function azel_history_to_passes(
     min_elevation::Number,
     min_obs_duration::Number,
     exposure_duration::Number,
+    jd_obs_window::Vector{Float64},
 )
     passes = VisiblePass[]
     new_pass = true         # initialize boolean for checking if we are in a new pass
@@ -151,11 +152,9 @@ function azel_history_to_passes(
             @assert in_pass == true
 
         elseif (new_pass == false) && (el <= min_elevation) && (in_pass == true) # end the pass
-            if (pass_times[end] - pass_times[1]) > min_obs_duration / 86400
+            if ((pass_times[end] - pass_times[1]) > min_obs_duration / 86400) &&
+                (jd_obs_window[1] <= pass_times[1]) && (pass_times[end] <= jd_obs_window[2])
                 push!(passes, VisiblePass(tle, pass_times, pass_azimuths, pass_elevations, exposure_duration))
-                #println("Got a pass: $((pass_times[end] - pass_times[1])*86400) sec")
-            # else
-            #     println("Too short: $((pass_times[end] - pass_times[1])*86400) sec, need $min_obs_duration sec")
             end
             new_pass = true             # toggle for next pass detection
             in_pass = false             # toggle for next pass detection

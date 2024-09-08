@@ -169,16 +169,18 @@ function tles_to_passes(
     for (idx,tle) in enumerate(tles)
         # initialize time grid
         jd0_tle = tle_epoch(tle)            # initial epoch of TLE in Julian day
-
-        t0_tle = (jd0_obs - jd0_tle) * 24*60                        # time between TLE time and observation start time, in minutes
-        dts_min_tle = t0_tle:dt_min:(t0_tle + obs_duration/60)  # propagation time grid in minutes
-        times_jd = Array(jd0_tle .+ dts_min_tle/60/24)              # time grid in Julian day
+        
+        tprop_extra = 30                                                                # extra time to make sure observation is within time window
+        t0_tle = (jd0_obs - jd0_tle) * 24*60                                            # time between TLE time and observation start time, in minutes
+        dts_min_tle = t0_tle-tprop_extra:dt_min:(t0_tle + obs_duration/60)+tprop_extra  # propagation time grid in minutes
+        times_jd = Array(jd0_tle .+ dts_min_tle/60/24)                                  # time grid in Julian day
+        jd_obs_window = [jd0_obs, jd0_obs + obs_duration/86400]                         # observation window in Julian day
 
         # integrate over time grid and get passes
         sph_ENU = integrate_sgp4(tle, dts_min_tle, :sph, eop_iau1980, observer_lla)
         _passes = azel_history_to_passes(
             tle, times_jd, sph_ENU[1,:], sph_ENU[2,:], 
-            min_elevation, min_obs_duration, exposure_duration)
+            min_elevation, min_obs_duration, exposure_duration, jd_obs_window)
         push!(passes, _passes...)
         push!(sph_ENU_list, sph_ENU)
     end

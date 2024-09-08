@@ -25,15 +25,16 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load config jsons
 config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
-config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP1.json"))
+config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP2.json"))
 target_choice = "B"
-solver_choice = "HiGHS"
+solver_choice = "Gurobi"
 
 # choose solver
 if solver_choice == "Gurobi"
     solver = MOI.OptimizerWithAttributes(
         Gurobi.Optimizer,
-        "TimeLimit" => 1200,
+        "TimeLimit" => 600,
+        "Method" => 2,
     )
 elseif solver_choice == "GLPK"
     solver = GLPK.Optimizer
@@ -57,7 +58,7 @@ jd0_ref = config_telescope["jd0_ref"]
 
 observer_lla_per_telescope = Vector[]
 jd0_obs_per_telescope = Real[]
-observer_duration_per_telescope = Real[]
+obs_duration_per_telescope = Real[]
 for observer in config["observers"]
     # get observer location
     observer_lat = deg2rad(observer["latitude"])          # degrees --> radians
@@ -72,14 +73,14 @@ for observer in config["observers"]
     jd0_obs = jds_night[1]
     obs_duration = 86400 * (jds_night[2] - jds_night[1])
     push!(jd0_obs_per_telescope, jd0_obs)
-    push!(observer_duration_per_telescope, obs_duration)
+    push!(obs_duration_per_telescope, obs_duration)
 end
 
 # create passes (irrespective of number of exposures)
 passes_per_telescope = Vector{Vector{TelescopeTasking.VisiblePass}}()
 for (q, (observer_lla, jd0_obs, obs_duration)) in enumerate(zip(observer_lla_per_telescope,
                                                               jd0_obs_per_telescope,
-                                                              observer_duration_per_telescope))
+                                                              obs_duration_per_telescope))
     _passes, _ = TelescopeTasking.tles_to_passes(
         tles,
         eop_iau1980,
@@ -101,7 +102,7 @@ for (q, (observer_lla, jd0_obs, obs_duration)) in enumerate(zip(observer_lla_per
 end
 
 # iterate through num_exposure
-num_exposures = [1,]# 2, 3]
+num_exposures = [1, 2, 3]
 for num_exposure in num_exposures
     _experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
     println(" *************** Experiment name: $_experiment_name *************** ")
@@ -144,5 +145,8 @@ for num_exposure in num_exposures
         write(io, JSON.json(_solution_dict))
     end
 
+    open(joinpath(@__DIR__, "solutions", "solve_stats_$(_experiment_name)_$(solver_choice).json"), "w") do io
+        write(io, JSON.json(_solve_stats_dict))
+    end
     @show _solve_stats_dict
 end

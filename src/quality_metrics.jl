@@ -24,17 +24,16 @@ function get_nonexposure_distance(
     passes::Vector,
     Y::Union{BitVector, Vector{Bool}, Vector{Int}},
 )
+    # chronological
+    used_passes = [pass for (pass, y) in zip(passes, Y) if y > 0.5]
     Ls = Real[]
-    n = length(passes)
-    for i in 1:n-1
-        r_unit_i = sph2cart(vcat(passes[i].azelf_exposure, [1]))
-        r_unit_j = sph2cart(vcat(passes[i+1].azel0_exposure, [1]))
+    for i in 1:length(used_passes)-1
+        r_unit_i = sph2cart(vcat(used_passes[i].azelf_exposure, [1]))
+        r_unit_j = sph2cart(vcat(used_passes[i+1].azel0_exposure, [1]))
         @assert norm(r_unit_j) ≈ 1.0
         @assert norm(r_unit_i) ≈ 1.0
-        if Y[i] > 0.5 && Y[i+1] > 0.5
-            L = acos(dot(r_unit_i, r_unit_j))
-            push!(Ls, L)
-        end
+        L = acos(dot(r_unit_i, r_unit_j))
+        push!(Ls, L)
     end
     return sum(Ls), Ls
 end

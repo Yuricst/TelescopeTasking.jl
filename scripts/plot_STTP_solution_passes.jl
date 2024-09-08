@@ -1,4 +1,4 @@
-"""Developing methods to save instances"""
+"""Plot STTP solution passes"""
 
 using Colors
 using ColorSchemes
@@ -22,11 +22,10 @@ include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
-
 # load config jsons
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP.json"))
-target_choice = "A"
+target_choice = "B"
 num_exposure = 1
 solver_choice = "Gurobi"
 experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
@@ -100,4 +99,5 @@ Ls_nonzero = [L for L in Ls if L > 0]
 scatter!(ax_L, 1:length(Ls_nonzero), rad2deg.(Ls_nonzero); color=:grey10, markersize=5)
 
 # display figure
-display(fig_L)
+display(fig_sol)
+# display(fig_L)
