@@ -139,7 +139,7 @@ end
         min_obs_duration,
         exposure_duration,
         observer_lla::Vector;
-        dt_sec::Number = 60.0,
+        dt_sec::Number = 10.0,
     )
 
 Construct vector of visible passes from vector of TLEs.
@@ -154,7 +154,7 @@ function tles_to_passes(
     min_obs_duration,
     exposure_duration,
     observer_lla::Vector;
-    dt_sec::Number = 60.0,
+    dt_sec::Number = 10.0,
     num_exposure::Int = 1,
     filter_by_num_exposure::Bool = false,
 )

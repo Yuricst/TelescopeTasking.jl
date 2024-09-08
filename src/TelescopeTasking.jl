@@ -4,6 +4,7 @@ using GLMakie
 using JuMP
 using Interpolations
 using LinearAlgebra
+using ProgressMeter: @showprogress
 using Printf: @printf
 using SatelliteToolboxCelestialBodies
 using SatelliteToolboxSgp4

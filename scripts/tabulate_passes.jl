@@ -8,11 +8,14 @@ include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 # load config jsons
 config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP.json"))
-target_choice = "B"
+target_choice = "C"
+
 if target_choice == "B"
     target_set_name = "Debris"
-elseif target_choice == "c"
+elseif target_choice == "C"
     target_set_name = "Starlink"
+else
+    error("Target choice $target_choice not recognized!")
 end
 
 # load TLE files
@@ -38,7 +41,6 @@ jd0_obs = jds_night[1]
 obs_duration = 86400 * (jds_night[2] - jds_night[1])
 
 # get passes
-num_exposure = 1
 _passes, _ = TelescopeTasking.tles_to_passes(
     tles,
     eop_iau1980,
@@ -49,7 +51,7 @@ _passes, _ = TelescopeTasking.tles_to_passes(
     exposure_duration,
     observer_lla,
     dt_sec = 10,
-    num_exposure = num_exposure,
+    num_exposure = 1,
 )
 _designators = unique([pass.tle.international_designator for pass in _passes])
 m = length(_designators)

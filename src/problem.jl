@@ -22,8 +22,8 @@ struct TelescopeTaskingProblem
         n = length(passes)
         A = zeros(Int, n, m)
         for (i, pass) in enumerate(passes)
-            j = findfirst(x -> x == pass.tle.international_designator, designators)
-            A[i,j] = 1
+            k = findfirst(x -> x == pass.tle.international_designator, designators)
+            A[i,k] = 1
         end
         
         # priority coefficient on each target
@@ -54,10 +54,10 @@ struct TelescopeTaskingProblem
 end
 
 
-function Base.show(io::IO, tsp::TelescopeTaskingProblem)
+function Base.show(io::IO, STTP::TelescopeTaskingProblem)
     println(io, "Telescope Scheduling Problem instance")
-    println(io, "    Number of observation arcs n = $(tsp.n)")
-    println(io, "    Number of targets m = $(tsp.m)")
+    println(io, "    Number of passes n  = $(STTP.n)")
+    println(io, "    Number of targets m = $(STTP.m)")
 end
 
 
@@ -111,3 +111,185 @@ function solve!(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
     end
     return X_val, Y_val, MOI.get(model, MOI.TerminationStatus())
 end
+
+
+struct MultiTelescopeTaskingProblem
+    n_per_telescope::Vector{Int}        # number of observation arcs per telescope
+    m_per_telescope::Vector{Int}        # number of targets per telescope
+    n_total::Int                        # total number of observation arcs
+    m_total::Int                        # total number of targets
+    A_per_telescope::Vector             # binary n-by-m matrix associating observation arcs to targets per telescope
+    T_per_telescope::Vector             # binary n-by-n matrix for transition feasibility from arc i to j per telescopew_per_telescope::Vector             # priority coefficient on each target per telescope
+    w::Vector                           # priority coefficient on each target per telescope
+    num_exposure::Int                   # number of exposures required for each target
+    map_y2Y::Dict                       # index map from individual telescope to stacked Y
+
+    function MultiTelescopeTaskingProblem(
+        passes_per_telescope::Vector{Vector{VisiblePass}},
+        num_exposure::Int,
+        slew_rate::Number;
+        w::Union{Vector,Nothing} = nothing,
+        buffer_times::Vector = [0.0, 0.0],
+    )
+        # number of telescopes
+        s = length(passes_per_telescope)
+
+        # get weights
+        designators = unique([pass.tle.international_designator for pass in vcat(passes_per_telescope...)])
+        m_total = length(designators)
+
+        # priority coefficient on each target
+        if isnothing(w)
+            w = ones(m_total)
+        else
+            @assert length(w) == m_total "Length of w must be equal to number of targets"
+        end
+        n_total = sum([length(passes) for passes in passes_per_telescope])
+        
+        n_per_telescope = Int[]
+        m_per_telescope = Int[]
+        A_per_telescope = []
+        T_per_telescope = []
+        for (q,passes) in enumerate(passes_per_telescope)
+            # construct target allocation matrix
+            n = length(passes)
+            A = zeros(Int, n, m_total)
+            observed_names = []
+            for (i, pass) in enumerate(passes)
+                k = findfirst(x -> x == pass.tle.international_designator, designators)
+                A[i,k] = 1
+                push!(observed_names, pass.tle.international_designator)
+            end
+    
+            # construct transition feasibility matrix
+            T = zeros(Int, n, n)
+            for i in 1:n-1
+                for j in i:n
+                    # compute slew time required and slew time allowed
+                    r_unit_i = sph2cart(vcat(passes[i].azelf_exposure, [1]))
+                    r_unit_j = sph2cart(vcat(passes[j].azel0_exposure, [1]))
+                    slew_time = acos(dot(r_unit_i, r_unit_j)) / slew_rate           # in seconds
+                    slew_allowed = 86400 * (
+                        (passes[j].t0_exposure - buffer_times[1]/86400) - (passes[i].tf_exposure + buffer_times[2]/86400)
+                    )
+                    if slew_time < slew_allowed
+                        T[i,j] = 1
+                    end
+                end
+            end
+
+            # store into list
+            push!(n_per_telescope, n)
+            push!(m_per_telescope, length(unique(observed_names)))
+            push!(A_per_telescope, A)
+            push!(T_per_telescope, T)
+        end
+
+        # index map from individual telescope to stacked Y
+        i_stacked = 1
+        map_y2Y = Dict()
+        for q in 1:s
+            for i in 1:n_per_telescope[q]
+                map_y2Y[(q,i)] = i_stacked
+                i_stacked += 1
+            end
+        end
+        new(n_per_telescope, m_per_telescope, n_total, m_total, A_per_telescope, T_per_telescope, w, num_exposure, map_y2Y)
+    end
+end
+
+
+function Base.show(io::IO, MTTP::MultiTelescopeTaskingProblem)
+    println(io, "Telescopes Scheduling Problem instance")
+    println(io, "    Number of telescopes s = $(length(MTTP.n_per_telescope))")
+    for q in 1:length(MTTP.n_per_telescope)
+        println(io, "    Telescope $q")
+        println(io, "        Number of passes n  = $(MTTP.n_per_telescope[q])")
+        println(io, "        Number of targets m = $(MTTP.m_per_telescope[q])")
+        println(io, "        size(A) = $(size(MTTP.A_per_telescope[q]))")
+        println(io, "        size(T) = $(size(MTTP.T_per_telescope[q]))")
+    end
+end
+
+
+"""
+    decompose_multitelescope_Y(problem::MultiTelescopeTaskingProblem, Y::Union{Vector,BitVector})
+
+Decompose optimal solution into per-telescope solutions
+"""
+function decompose_multitelescope_Y(problem::MultiTelescopeTaskingProblem, Y::Union{Vector,BitVector})
+    Y_per_telescope = Vector[]
+    for q in 1:length(problem.n_per_telescope)
+        Y_per_telescope_q = zeros(Int, problem.n_per_telescope[q])
+        for i in 1:problem.n_per_telescope[q]
+            Y_per_telescope_q[i] = Y[problem.map_y2Y[(q,i)]]
+        end
+        push!(Y_per_telescope, Y_per_telescope_q)
+    end
+    return Y_per_telescope
+end
+
+
+function solve!(problem::MultiTelescopeTaskingProblem, solver; verbose::Bool = true)
+
+    # start measuring time
+    tstart = time()
+
+    # create model
+    model = Model(solver)
+    N = sum(problem.n_per_telescope)
+    @variable(model, Y[1:problem.n_total], Bin);      # whether observation arc i is selected
+    @variable(model, X[1:problem.m_total], Bin);      # whether target k is observed (sufficiently many times)
+    @printf("Created variables; %1.4f sec\n", time() - tstart)
+
+    # sufficient exposure constraint
+    s = length(problem.n_per_telescope)
+    @constraint(model,
+                sufficient_exposure[k=1:problem.m_total], 
+                sum(
+                    sum(
+                        problem.A_per_telescope[q][i,k] * Y[problem.map_y2Y[(q,i)]]
+                        for i in 1:problem.n_per_telescope[q]
+                    )
+                for q in 1:s) >= problem.num_exposure * X[k]
+    )
+    @printf("Created target allocation constraints; %1.4f sec\n", time() - tstart)
+    
+    # transition feasibility constraints
+    @showprogress for (q,T) in enumerate(problem.T_per_telescope)
+        @constraint(model,
+                   [i = 1:problem.n_per_telescope[q]-1, j = i+1:problem.n_per_telescope[q]], 
+                    Y[problem.map_y2Y[(q,i)]] + Y[problem.map_y2Y[(q,j)]] <= 1 + T[i,j])
+    end
+    @printf("Created transition feasibility constraints; %1.4f sec\n", time() - tstart)
+
+    @objective(model, Max, sum(problem.w'X) - 1/problem.n_total * sum(Y))
+
+    if verbose
+        @printf("Model created; elapsed time; %1.4f sec\n", time() - tstart)
+    end
+
+    # solve problem
+    optimize!(model)
+
+    # get BitMatrix X and BitVector Y
+    X_val = value.(X) .> 1 - 1e-5;
+    Y_val = value.(Y) .> 1 - 1e-5;
+
+    # decompose solution
+    Y_per_telescope = decompose_multitelescope_Y(problem, Y_val)
+
+    # print info about solution
+    if verbose
+        termination_status(model)
+        @printf("Observed %d out of %d targets, each with %d exposures\n",
+            sum(X_val), problem.m_total, problem.num_exposure)
+        @printf("Used %d out of %d passes\n", sum(Y_val), problem.n_total)
+        for q = 1:s
+            @printf("Telescope %d: %d out of %d passes used\n", 
+                q, sum(Y_per_telescope[q]), problem.n_per_telescope[q])
+        end
+    end
+    return X_val, Y_val, Y_per_telescope, MOI.get(model, MOI.TerminationStatus())
+end
+
