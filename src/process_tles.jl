@@ -156,6 +156,7 @@ function tles_to_passes(
     observer_lla::Vector;
     dt_sec::Number = 60.0,
     num_exposure::Int = 1,
+    filter_by_num_exposure::Bool = false,
 )
     @assert deg2rad(min_elevation) >= 0 "Minimum elevation must be positive"
     @assert min_obs_duration >= exposure_duration "Minimum observation duration must be greater than exposure duration"
@@ -183,7 +184,7 @@ function tles_to_passes(
     end
 
     # filter ones that do not result in enough exopsures
-    if num_exposure > 1
+    if (num_exposure > 1) && (filter_by_num_exposure == true)
         passes = filter(passes, num_exposure)
     end
 
