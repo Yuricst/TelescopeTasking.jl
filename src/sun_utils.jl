@@ -44,8 +44,14 @@ function earliest_night(
     end
 
     # detect earliest beginning of night time
-    idx_dusk = findfirst(sph_sun[2,:] .< elevation_threshold)
-    jd_night_start = jds[max(1,idx_dusk-1)]
+    idx_dusk = 1
+    for idx in 1:length(sph_sun[2,:])-1
+        if (sph_sun[2,idx] < elevation_threshold) && (sph_sun[2,idx] > sph_sun[2,idx+1])
+            idx_dusk = idx
+            break
+        end
+    end
+    jd_night_start = jds[idx_dusk]
 
     # remaining time
     jd_remain = jds[idx_dusk:end]
