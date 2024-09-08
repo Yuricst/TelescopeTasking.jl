@@ -24,7 +24,7 @@ eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load config jsons
-telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
+config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP.json"))
 target_choice = "A"
 solver_choice = "Gurobi"
@@ -48,18 +48,18 @@ tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(tar
 println("There are $(length(tles)) TLEs in the file")
 
 # get passes
-slew_rate = deg2rad(telescope["slew_rate"])                         # rad/s
-buffer_times = [telescope["buffer_t0"], telescope["buffer_t1"]]     # times in seconds
-min_elevation = deg2rad(telescope["min_elevation"] )            # in radians
-min_obs_duration = telescope["min_obs_duration"]                # in seconds
-exposure_duration = telescope["exposure_duration"]              # in seconds
+slew_rate = deg2rad(config_telescope["slew_rate"])                         # rad/s
+buffer_times = [config_telescope["buffer_t0"], config_telescope["buffer_t1"]]     # times in seconds
+min_elevation = deg2rad(config_telescope["min_elevation"] )            # in radians
+min_obs_duration = config_telescope["min_obs_duration"]                # in seconds
+exposure_duration = config_telescope["exposure_duration"]              # in seconds
 observer_lat = deg2rad(config["observer"]["latitude"])          # degrees --> radians
 observer_lon = deg2rad(config["observer"]["longitude"])         # degrees --> radians
 observer_alt = deg2rad(config["observer"]["altitude"])          # meters
 observer_lla = [observer_lat, observer_lon, observer_alt]
 
 # initial epoch of local nightfall
-jd0_ref = telescope["jd0_ref"]
+jd0_ref = config_telescope["jd0_ref"]
 @assert maximum([tle_epoch(tle) for tle in tles]) <= jd0_ref "TLEs are later than reference JD!"
 jds_night = TelescopeTasking.earliest_night(jd0_ref, observer_lla, eop_iau1980)
 jd0_obs = jds_night[1]
