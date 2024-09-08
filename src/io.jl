@@ -48,7 +48,7 @@ function solution_to_dict(
 
     # compute quality quality_metrics
     eta = get_temporal_efficiency(obs_duration, exposure_duration, sum(Y))
-    L = get_nonexposure_distance(passes, Y)
+    L, Ls = get_nonexposure_distance(passes, Y)
 
     # create list of visible passes dictionaries
     passes_dict = [pass_to_dict(pass) for pass in passes]
@@ -63,6 +63,7 @@ function solution_to_dict(
         "X" => X,
         "Y" => Y,
         "eta" => eta,
+        "Ls" => Ls,
         "L" => L,
         "m" => m,
         "n" => n,

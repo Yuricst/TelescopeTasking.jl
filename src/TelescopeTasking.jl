@@ -5,11 +5,13 @@ using JuMP
 using Interpolations
 using LinearAlgebra
 using Printf: @printf
+using SatelliteToolboxCelestialBodies
 using SatelliteToolboxSgp4
 using SatelliteToolboxTle
 using SatelliteToolboxTransformations
 
 include("transformations.jl")
+include("sun_utils.jl")
 include("pass.jl")
 include("process_tles.jl")
 include("problem.jl")
