@@ -1,9 +1,11 @@
 """Plot MTTP solution passes"""
 
+using CairoMakie
+# using GLMakie
+
 using Colors
 using ColorSchemes
 using GeometryBasics
-using GLMakie
 using GLPK
 using Gurobi
 using HiGHS
@@ -26,7 +28,7 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP1.json"))
 target_choice = "B"
-num_exposure = 1
+num_exposure = 2
 solver_choice = "Gurobi"
 experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
 @printf("Plotting pass from experiment %s\n", experiment_name)
@@ -55,25 +57,22 @@ selected_passes_per_telescope = [
 
 # plot of selected passes
 fontsize = 24
-fig_sol = Figure(size=(900,500))
-ax_polar1 = PolarAxis(fig_sol[1,1];
-    rticks = ([0,20,40,60], ["90","70","50","30"]),
-    rticklabelsize=fontsize-1,
-    thetaticklabelsize=fontsize-1,
-)
-TelescopeTasking.polar_plot_passes!(ax_polar1, passes_per_telescope[1]; color=:grey60, linewidth=0.1)
-TelescopeTasking.polar_plot_passes!(ax_polar1, selected_passes_per_telescope[1]; 
-    linewidth=1.5, color_by_target=true, exposure_only=true)
+for q in 1:length(passes_per_telescope)
+    _fig_sol = Figure(size=(500,500))
+    _ax_polar = PolarAxis(_fig_sol[1,1];
+        rticks = ([0,20,40,60], ["90","70","50","30"]),
+        rticklabelsize=fontsize-1,
+        thetaticklabelsize=fontsize-1,
+    )
+    TelescopeTasking.polar_plot_passes!(_ax_polar, passes_per_telescope[q]; color=:grey60, linewidth=0.1)
+    TelescopeTasking.polar_plot_passes!(_ax_polar, selected_passes_per_telescope[q]; 
+        linewidth=1.5, color_by_target=true, exposure_only=true)
 
-ax_polar2 = PolarAxis(fig_sol[1,2];
-    rticks = ([0,20,40,60], ["90","70","50","30"]),
-    rticklabelsize=fontsize-1,
-    thetaticklabelsize=fontsize-1,
-)
-TelescopeTasking.polar_plot_passes!(ax_polar2, passes_per_telescope[2]; color=:grey60, linewidth=0.1)
-TelescopeTasking.polar_plot_passes!(ax_polar2, selected_passes_per_telescope[2]; 
-    linewidth=1.5, color_by_target=true, exposure_only=true)
-
+    # saveplot
+    filename = "passes_polar_$(experiment_name)_$(solver_choice)_telescope$q.png"
+    save(joinpath(@__DIR__, "plots", filename), _fig_sol)
+    @printf("Saved %s\n", filename)
+end
 
 # plot of selected passes
 fontsize = 24
@@ -82,13 +81,10 @@ for (idx, (passes, selected_passes)) in enumerate(zip(passes_per_telescope, sele
     # plot time-history
     axes = [Axis(fig_time[1,idx]; xlabel="Time, hour", ylabel="Azimuth, deg"),
             Axis(fig_time[2,idx]; xlabel="Time, hour", ylabel="Elevation, deg")]
-    TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey50, linewidth=0.3)
+    TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey70, linewidth=0.1)
     TelescopeTasking.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
-        linewidth=1.5, color_by_target=true, exposure_only=true)
+        linewidth=0.8, color_by_target=true, exposure_only=true)
 end
-
-
-#save(joinpath(@__DIR__, "plots", "passes_$(experiment_name)_$(solver_choice).png"), fig_sol)
 
 
 # # plot of non-exposure distance between passes
@@ -99,5 +95,6 @@ end
 # scatter!(ax_L, 1:length(Ls_nonzero), rad2deg.(Ls_nonzero); color=:grey10, markersize=5)
 
 # # display figure
-display(fig_time)
+display(fig_sol)
+# display(fig_time)
 # # display(fig_L)

@@ -24,7 +24,7 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load config jsons
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
-config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP.json"))
+config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP2.json"))
 target_choice = "B"
 num_exposure = 1
 solver_choice = "Gurobi"
@@ -88,7 +88,7 @@ TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes;
 # TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey, linewidth=1.0)
 # TelescopeTasking.plot_time_history!(axes, selected_passes; jd_ref=jd0_obs, 
 #     linewidth=1.5, color_by_target=true, exposure_only=true)
-save(joinpath(@__DIR__, "plots", "passes_$(experiment_name)_$(solver_choice).png"), fig_sol)
+save(joinpath(@__DIR__, "plots", "passes_polar_$(experiment_name)_$(solver_choice).png"), fig_sol)
 
 
 # plot of non-exposure distance between passes
