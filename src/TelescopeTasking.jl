@@ -12,10 +12,12 @@ using SatelliteToolboxTle
 using SatelliteToolboxTransformations
 
 include("transformations.jl")
+include("spherical_path.jl")
 include("sun_utils.jl")
 include("pass.jl")
 include("process_tles.jl")
 include("problem.jl")
+include("greedy.jl")
 include("visualizations.jl")
 include("quality_metrics.jl")
 include("io.jl")

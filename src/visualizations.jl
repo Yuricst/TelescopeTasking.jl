@@ -90,7 +90,6 @@ function polar_plot_passes!(
 end
 
 
-
 """
 Plot time-history of azimuth and elevation
 """
@@ -137,5 +136,28 @@ function plot_time_history!(
             lines!(axes[1], times_exposure, rad2deg.(az_exposure), color = _color, linewidth = linewidth)
             lines!(axes[2], times_exposure, rad2deg.(el_exposure), color = _color, linewidth = linewidth)
         end
+    end
+end
+
+
+"""
+Plot slewing maneuver between two passes
+"""
+function polar_plot_interpass_slew!(
+    ax::PolarAxis,
+    passes::Vector{VisiblePass};
+    color = :black,
+    linewidth::Real = 1.0,
+    linestyle = :solid,
+    steps::Int = 100,
+)
+    for i in 1:length(passes)-1
+        _, az_1, el_1 = get_exposure_history(passes[i])
+        _, az_2, el_2 = get_exposure_history(passes[i+1])
+        az_slew, el_slew = sphere_shortest_path(az_1[end], el_1[end], az_2[1], el_2[1], steps)
+        lines!(ax, az_slew, 90 .- rad2deg.(el_slew),
+            color = color,
+            linewidth = linewidth,
+            linestyle = linestyle)
     end
 end
