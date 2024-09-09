@@ -83,7 +83,7 @@ function MTTP_solution_to_dict(
     min_obs_duration,
     exposure_duration,
     observer_lla_per_telescope::Vector,
-    X::Union{BitVector, Vector{Bool}},
+    X::Union{BitVector, Vector{Bool}, Vector{Int}},
     Y_per_telescope::Vector{Vector},
 )
     # compute quality quality_metrics
