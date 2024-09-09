@@ -78,7 +78,7 @@ ax_sol = PolarAxis(fig_sol[1:1,1];
     # thetalabelsize=fontsize,
     rticklabelsize=fontsize-1,
     thetaticklabelsize=fontsize-1,)
-TelescopeTasking.polar_plot_passes!(ax_sol, passes; color=:grey50, linewidth=0.5)
+TelescopeTasking.polar_plot_passes!(ax_sol, passes; color=:grey70, linewidth=0.1)
 TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes; 
     linewidth=1.5, color_by_target=true, exposure_only=true)
 
