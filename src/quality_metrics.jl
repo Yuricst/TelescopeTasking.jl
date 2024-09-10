@@ -22,7 +22,7 @@ L = sum_{i=1}^{n-1} sum_{j=i}^{n} acos(dot(r_unit_i, r_unit_j)) * Y_i * Y_j
 """
 function get_nonexposure_distance(
     passes::Vector,
-    Y::Union{BitVector, Vector{Bool}, Vector{Int}},
+    Y,
 )
     # chronological
     used_passes = [pass for (pass, y) in zip(passes, Y) if y > 0.5]
@@ -36,4 +36,19 @@ function get_nonexposure_distance(
         push!(Ls, L)
     end
     return sum(Ls), Ls
+end
+
+
+"""
+Compute ratio of time where telescope was idle
+"""
+function get_idletimeratio(
+    passes,
+    Y,
+    obs_duration,
+    exposure_duration,
+    slew_rate
+)
+    L, _ = get_nonexposure_distance(passes, Y)
+    return 1 - 1/obs_duration*(L/slew_rate + exposure_duration*sum(Y))
 end

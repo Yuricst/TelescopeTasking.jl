@@ -21,9 +21,13 @@ end
 
 
 for instance_name in instance_names
-    telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
+    config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
     config = JSON.parsefile(joinpath(@__DIR__, "configs/config_$(instance_name).json"))
     target_choice = "B"
+        
+    slew_rate = deg2rad(config_telescope["slew_rate"])                         # rad/s
+    exposure_duration = config_telescope["exposure_duration"]              # in seconds
+
 
     experiment_name_dict = Dict(
         "STTP1" => "STTP I",
@@ -44,14 +48,24 @@ for instance_name in instance_names
         # print results
         if occursin("STTP", instance_name)
             if (sum(solution_dict["X"]) > 0)
-                @printf("    %s & \$%1.0f\$ & \$%1.2f\$ & \$%1.2f\$ & \$%1.0f\$ & \$%1.2f\$ & \$%1.1f\$ \\\\\n",
+                passes = [TelescopeTasking.VisiblePass(pass_dict) for pass_dict in solution_dict["passes_dict"]]
+                tau_idle = TelescopeTasking.get_idletimeratio(
+                        passes,
+                        solution_dict["Y"],
+                        solution_dict["obs_duration"],
+                        exposure_duration,
+                        slew_rate,
+                    )
+
+                @printf("    %s & \$%1.0f\$ & \$%1.2f\$ & \$%1.2f\$ & \$%1.0f\$ & \$%1.2f\$ & \$%1.2f\$ \\\\\n",
                     experiment_name_dict[instance_name],
                     num_exposure,
                     solution_dict["solve_time"],
                     compute_gap(sum(gurobi_solution_dict["X"]), sum(solution_dict["X"])) * 100,
                     sum(solution_dict["X"]),
                     sum(solution_dict["eta"]),
-                    sum(solution_dict["L"]),
+                    tau_idle,
+                    #sum(solution_dict["L"]),
                 )
             else
                 @printf("    %s & \$%1.0f\$ & n.a. & n.a. & n.a. & n.a. & n.a. \\\\\n",
@@ -63,25 +77,39 @@ for instance_name in instance_names
             s = length(solution_dict["eta_per_telescope"])
             eta_per_telescope = solution_dict["eta_per_telescope"]
             L_per_telescope = [sum(Ls) for Ls in solution_dict["L_per_telescope"]]
+            passes_per_telescope = [
+                [TelescopeTasking.VisiblePass(pass_dict) for pass_dict in passes_dict_list]
+                for passes_dict_list in solution_dict["passes_per_telescope"]
+            ]       
+            tau_idle_per_telescope = [
+                tau_idle = TelescopeTasking.get_idletimeratio(
+                    passes_per_telescope[q],
+                    solution_dict["Y_per_telescope"][q],
+                    solution_dict["obs_duration_per_telescope"][q],
+                    exposure_duration,
+                    slew_rate,
+                )
+                for q = 1:length(eta_per_telescope)
+            ]
             if s == 2
-                @printf("    %s & \$%1.0f\$ & \$%1.2f\$ & \$%1.2f\$ & \$%1.0f\$ & \$%1.2f\$, \$%1.2f\$ & \$%1.1f\$, \$%1.1f\$ \\\\\n",
+                @printf("    %s & \$%1.0f\$ & \$%1.2f\$ & \$%1.2f\$ & \$%1.0f\$ & \$%1.2f\$, \$%1.2f\$ & \$%1.2f\$, \$%1.2f\$ \\\\\n",
                     experiment_name_dict[instance_name],
                     num_exposure,
                     solution_dict["solve_time"],
                     compute_gap(sum(gurobi_solution_dict["X"]), sum(solution_dict["X"])) * 100,
                     sum(solution_dict["X"]),
                     eta_per_telescope...,
-                    L_per_telescope...
+                    tau_idle_per_telescope...
                 )
             elseif s == 3
-                @printf("    %s & \$%1.0f\$ & \$%1.2f\$ & \$%1.2f\$ & \$%1.0f\$ & \$%1.2f\$, \$%1.2f\$, \$%1.2f\$ & \$%1.1f\$, \$%1.1f\$, \$%1.1f\$ \\\\\n",
+                @printf("    %s & \$%1.0f\$ & \$%1.2f\$ & \$%1.2f\$ & \$%1.0f\$ & \$%1.2f\$, \$%1.2f\$, \$%1.2f\$ & \$%1.2f\$, \$%1.2f\$, \$%1.2f\$ \\\\\n",
                     experiment_name_dict[instance_name],
                     num_exposure,
                     solution_dict["solve_time"],
                     compute_gap(sum(gurobi_solution_dict["X"]), sum(solution_dict["X"])) * 100,
                     sum(solution_dict["X"]),
                     eta_per_telescope...,
-                    L_per_telescope...
+                    tau_idle_per_telescope...
                 )
             end
         else

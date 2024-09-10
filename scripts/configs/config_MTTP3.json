@@ -5,19 +5,22 @@
             "latitude": 33.749,
             "longitude": -84.388,
             "altitude": 336.0,
-            "city": "Atlanta"
+            "city": "Atlanta",
+            "jd0_ref": 2460559.5
         },
         {
             "latitude": 31.955,
             "longitude": 35.945,
             "altitude": 12,
-            "city": "Amman"
+            "city": "Amman",
+            "jd0_ref": 2460559.5
         },
         {
             "latitude": -33.868,
             "longitude": 151.207,
             "altitude": 58,
-            "city": "Sydney"
+            "city": "Sydney",
+            "jd0_ref": 2460559.5
         }
     ]
 }

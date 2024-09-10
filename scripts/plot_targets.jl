@@ -67,7 +67,7 @@ ax_en = Axis(fig_en[1,1];
     ylabelsize=fontsize,
     xticklabelsize=fontsize-1,
     yticklabelsize=fontsize-1,
-    xlabel="Mean motion, rev/day", ylabel="Eccentricity")
+    xlabel="Semimajor axis, km", ylabel="Eccentricity")
 
 fig_iW = Figure(size=(500,400))
 ax_iW = Axis(fig_iW[1,1];
@@ -79,19 +79,27 @@ ax_iW = Axis(fig_iW[1,1];
     xlabel="RAAN, deg", ylabel="Inclination, deg")
 colors = cgrad(:matter, 5, categorical = true)[2:end]
 markers = [:circle, :diamond, :cross, :rect]
+
+TG = 86164.0
+
 for (idx,(tles, name)) in enumerate(zip(tles_list, names))
+    smas = [TelescopeTasking.tle2sma(tle) for tle in tles]
     mean_motion = [tle.mean_motion for tle in tles]
+    periods = [TelescopeTasking.tle2period(tle) for tle in tles]
     eccentricity = [tle.eccentricity for tle in tles]
     inclination = [tle.inclination for tle in tles]
     raan = [tle.raan for tle in tles]
+    DeltaE = rad2deg.(2pi  * periods ./ TG)
 
     name_ = "$name ($(length(tles)))"
-    scatter!(ax_en, mean_motion, eccentricity, label=name_, markersize=5,
+    scatter!(ax_en, smas, eccentricity, label=name_, markersize=5,
         color=colors[idx], marker=markers[idx])
     scatter!(ax_iW, raan, inclination, label=name_, markersize=5, 
         color=colors[idx], marker=markers[idx])
+    
+    @printf("Period average for %s : %1.2f hr\n", name, sum(periods)/length(periods)/3600)
 end
-axislegend(ax_en, position=:lb, labelsize=fontsize-5)
+axislegend(ax_en, position=:rb, labelsize=fontsize-5)
 
 save(joinpath(@__DIR__, "plots", "targets_orbits_en.png"), fig_en)
 save(joinpath(@__DIR__, "plots", "targets_orbits_iW.png"), fig_iW)
