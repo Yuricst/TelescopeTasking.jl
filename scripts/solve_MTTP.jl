@@ -25,10 +25,9 @@ function main()
     eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
     config_filenames = [
-        #"config_MTTP1.json",
-        #"config_MTTP2.json",
-        #"config_MTTP3.json",
-        "config_MTTP4.json",
+        "config_MTTP1.json",
+        "config_MTTP2.json",
+        # "config_MTTP3.json",
     ]
 
     for config_filename in config_filenames
@@ -36,7 +35,7 @@ function main()
         # load config jsons
         config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
         config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
-        target_choice = "A"
+        target_choice = "S1"
         solver_choice = "Gurobi"
 
         # choose solver

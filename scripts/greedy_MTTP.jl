@@ -26,7 +26,7 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 config_filenames = [
     "config_MTTP1.json",
     "config_MTTP2.json",
-    "config_MTTP3.json",
+    # "config_MTTP3.json",
 ]
 
 for config_filename in config_filenames
@@ -34,7 +34,7 @@ for config_filename in config_filenames
     # load config jsons
     config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
     config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
-    target_choice = "B"
+    target_choice = "S1"
 
     # load TLE files
     tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))

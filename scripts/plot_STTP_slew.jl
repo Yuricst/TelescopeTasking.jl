@@ -4,7 +4,7 @@ using CairoMakie
 using Colors
 using ColorSchemes
 using GeometryBasics
-# using GLMakie
+using GLMakie
 using JSON
 using JuMP
 using LinearAlgebra
@@ -14,7 +14,7 @@ using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
-CairoMakie.activate!()
+GLMakie.activate!()
 
 include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
@@ -25,7 +25,7 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 # load config jsons
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP1.json"))
-target_choice = "B"
+target_choice = "S1"
 num_exposure = 1
 solver_choice = "Gurobi"
 experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
@@ -68,8 +68,9 @@ passes = [TelescopeTasking.VisiblePass(pass_dict) for pass_dict in solution_dict
 Y = [el > 0.5 for el in solution_dict["Y"]]
 selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
 
-i_choose = 104
-selected_passes = selected_passes[i_choose:i_choose + 2]
+i_choose = 80
+N_passes_to_plot = 30
+selected_passes = selected_passes[i_choose:i_choose + N_passes_to_plot - 1]
 
 # plot of selected passes
 fontsize = 24
@@ -82,10 +83,10 @@ ax_sol = CairoMakie.PolarAxis(fig_sol[1:1,1];
     thetagridwidth = 0.3,
     rticklabelsize=fontsize-1,
     thetaticklabelsize=fontsize-1,)
-TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes; color=:grey50, linewidth=2)
+TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes; color=:grey50, linewidth=0.5)
 TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes; 
     linewidth=3, color=:red, color_by_target=true, exposure_only=true)
 TelescopeTasking.polar_plot_interpass_slew!(ax_sol, selected_passes; linestyle = :solid, color = :red)
-CairoMakie.save(joinpath(@__DIR__, "plots", "slew_explanation.svg"), fig_sol)
+#CairoMakie.save(joinpath(@__DIR__, "plots", "slew_explanation.svg"), fig_sol)
 
-# display(fig_sol)
+display(fig_sol)

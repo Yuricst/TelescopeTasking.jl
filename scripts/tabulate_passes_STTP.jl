@@ -7,13 +7,15 @@ include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 # load config jsons
 config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
-config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP2.json"))
-target_choice = "B"
+config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP1.json"))
+target_choice = "S1"
 
 if target_choice == "B"
     target_set_name = "Debris"
 elseif target_choice == "C"
     target_set_name = "Starlink"
+elseif target_choice == "S1"
+    target_set_name = "Shell 1"
 else
     error("Target choice $target_choice not recognized!")
 end

@@ -26,9 +26,9 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load config jsons
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
-config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP2.json"))
-target_choice = "B"
-num_exposure = 2
+config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP1.json"))
+target_choice = "S1"
+num_exposure = 3
 solver_choice = "Gurobi"
 experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
 @printf("Plotting pass from experiment %s\n", experiment_name)
@@ -38,7 +38,7 @@ tles = read_tles(read(joinpath(@__DIR__, "../data/tles/AAS25target$(target_choic
 
 # load solutions
 solution_dict = JSON.parsefile(joinpath(@__DIR__, "solutions/solution_$(experiment_name)_$(solver_choice).json"))
-jd0_obs = solution_dict["jd0_obs"]
+# jd0_obs = solution_dict["jd0_obs"]
 min_obs_duration = solution_dict["min_obs_duration"]
 exposure_duration = solution_dict["exposure_duration"]
 obs_duration_per_telescope = solution_dict["obs_duration_per_telescope"]
@@ -79,6 +79,7 @@ fontsize = 24
 fig_time = Figure(size=(1400,800);)
 for (idx, (passes, selected_passes)) in enumerate(zip(passes_per_telescope, selected_passes_per_telescope))        
     # plot time-history
+    jd0_obs = solution_dict["jd0_obs"][idx]
     axes = [Axis(fig_time[1,idx]; xlabel="Time, hour", ylabel="Azimuth, deg"),
             Axis(fig_time[2,idx]; xlabel="Time, hour", ylabel="Elevation, deg")]
     TelescopeTasking.plot_time_history!(axes, passes; jd_ref=jd0_obs, color=:grey70, linewidth=0.1)

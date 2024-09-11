@@ -92,7 +92,9 @@ end
 
 Instantiate JuMP model and solve single telescope scheduling problem.
 """
-function solve(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
+function solve(problem::TelescopeTaskingProblem, solver; verbose::Bool = true,
+    bias_objective::Bool = false,
+)
     if problem.m == 0 
         println("WARNING: no targets detected!")
         return zeros(Int, problem.m), zeros(Int, problem.n), NaN
@@ -115,7 +117,11 @@ function solve(problem::TelescopeTaskingProblem, solver; verbose::Bool = true)
                 Y[i] + Y[j] <= 1 + problem.T[i,j])
 
     @printf("Created transition feasibility constraint; %1.4f sec\n", time() - tstart)
-    @objective(model, Max, sum(problem.w'X) - 1/problem.n * sum(Y))
+    if bias_objective
+        @objective(model, Max, sum(problem.w'X) - 1/problem.n * sum(Y))
+    else
+        @objective(model, Max, sum(problem.w'X))
+    end
 
     if verbose
         @printf("Model created; elapsed time; %1.4f sec\n", time() - tstart)

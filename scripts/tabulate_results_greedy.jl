@@ -12,18 +12,17 @@ eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load config jsons
-instance_names = ["STTP1", "STTP2", "MTTP1", "MTTP2", "MTTP3"]
+instance_names = ["STTP1", "MTTP1", "MTTP2"]  #"STTP2", "MTTP1", "MTTP2", "MTTP3"]
 
 
 function compute_gap(Z_opt, Z_greedy)
     return (sum(Z_opt) - sum(Z_greedy)) / sum(Z_opt)
 end
 
-
+@show target_choice = "S1"
 for instance_name in instance_names
     config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
     config = JSON.parsefile(joinpath(@__DIR__, "configs/config_$(instance_name).json"))
-    target_choice = "B"
         
     slew_rate = deg2rad(config_telescope["slew_rate"])                         # rad/s
     exposure_duration = config_telescope["exposure_duration"]              # in seconds
