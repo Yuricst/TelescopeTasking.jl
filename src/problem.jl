@@ -149,7 +149,7 @@ struct MultiTelescopeTaskingProblem
     n_per_telescope::Vector{Int}        # number of observation arcs per telescope
     m_per_telescope::Vector{Int}        # number of targets per telescope
     n_total::Int                        # total number of observation arcs
-    m::Int                        # total number of targets
+    m::Int                              # total number of targets
     A_per_telescope::Vector             # binary n-by-m matrix associating observation arcs to targets per telescope
     T_per_telescope::Vector             # binary n-by-n matrix for transition feasibility from arc i to j per telescopew_per_telescope::Vector             # priority coefficient on each target per telescope
     w::Vector                           # priority coefficient on each target per telescope

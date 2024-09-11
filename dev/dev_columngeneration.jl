@@ -48,7 +48,6 @@ tles = TelescopeTasking.filter(tles, names_include = names_include)
 tles = tles[1:200]          # only use subset of them
 
 # get passes
-obs_duration_1 = 8 * 3600             # in seconds
 min_elevation = deg2rad(30)
 min_obs_duration = 100              # in seconds
 exposure_duration = 60              # in seconds
@@ -56,7 +55,8 @@ exposure_duration = 60              # in seconds
 observer_lla_1 = [deg2rad(45), deg2rad(13), 30.0]
 jds_night_1 = TelescopeTasking.earliest_night(jd0_ref, observer_lla_1, eop_iau1980)
 jd0_obs_1 = jds_night_1[1]
-obs_duration_1 = 86400 * (jds_night_1[2] - jds_night_1[1])
+obs_duration_1 = 86400 * (jds_night_1[2] - jds_night_1[1]) * 0.2
+@printf("Observation duration: %1.4f hours\n", obs_duration_1/3600)
 @assert jd0_ref <= jd0_obs_1
 
 passes_1, sph_ENU_list = TelescopeTasking.tles_to_passes(
@@ -69,7 +69,7 @@ passes_per_telescope = [passes_1, passes_1]
 @printf("Pass from observer 2: %d\n", length(passes_1))
 @printf("Total passes: %d\n", length(passes_1) + length(passes_1))
 
-# construct problem
+# construct original problem
 num_exposure = 1
 slew_rate = deg2rad(2)      # rad/s
 buffer_times = [15, 0]      # times in seconds
@@ -81,57 +81,69 @@ problem = TelescopeTasking.MultiTelescopeTaskingProblem(
 )
 @show problem;
 
-# solve problem
-solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
-    "TimeLimit" => 1200)
-# solver = HiGHS.Optimizer
-X, Y, Y_per_telescope, solve_stats_dict = TelescopeTasking.solve(problem, solver)
-selected_passes_per_telescope = [
-    [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
-    for (passes,Y) in zip(passes_per_telescope, Y_per_telescope)
-]
+# initial solve via greedy algorithm
+_, _, initial_patterns, _ = TelescopeTasking.solve_greedy(problem)
 
-# save to dictionary
-observer_lla_per_telescope = [observer_lla_1, observer_lla_1]
-obs_duration_per_telescope = [obs_duration_1, obs_duration_1]
-solution_dict = TelescopeTasking.MTTP_solution_to_dict(
-    problem,
-    passes_per_telescope,
-    jd0_ref,
-    obs_duration_per_telescope,
-    min_elevation,
-    min_obs_duration,
-    exposure_duration,
-    observer_lla_per_telescope,
-    X,
-    Y_per_telescope,
-)
+# solve via column generation
+# solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
+#     "TimeLimit" => 1200)
+solver = HiGHS.Optimizer
+reduced_master_problem, pricing_problem = TelescopeTasking.solve_column_generation(
+    problem, solver, initial_patterns; maxiter=2);
 
-# plot of selected passes
-fig_sol = Figure(size=(1400,800))
-ax_polar1 = PolarAxis(fig_sol[1,1])
-TelescopeTasking.polar_plot_passes!(ax_polar1, passes_1; color=:grey, linewidth=0.3)
-TelescopeTasking.polar_plot_passes!(ax_polar1, selected_passes_per_telescope[1]; 
-    linewidth=1.5, color_by_target=true, exposure_only=true)
 
-    ax_polar2 = PolarAxis(fig_sol[2,1])
-TelescopeTasking.polar_plot_passes!(ax_polar2, passes_1; color=:grey, linewidth=0.3)
-TelescopeTasking.polar_plot_passes!(ax_polar2, selected_passes_per_telescope[2]; 
-    linewidth=1.5, color_by_target=true, exposure_only=true)
+
+# # solve problem
+# solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
+#     "TimeLimit" => 1200)
+# # solver = HiGHS.Optimizer
+# X, Y, Y_per_telescope, solve_stats_dict = TelescopeTasking.solve(problem, solver)
+# selected_passes_per_telescope = [
+#     [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
+#     for (passes,Y) in zip(passes_per_telescope, Y_per_telescope)
+# ]
+
+# # save to dictionary
+# observer_lla_per_telescope = [observer_lla_1, observer_lla_1]
+# obs_duration_per_telescope = [obs_duration_1, obs_duration_1]
+# solution_dict = TelescopeTasking.MTTP_solution_to_dict(
+#     problem,
+#     passes_per_telescope,
+#     jd0_ref,
+#     obs_duration_per_telescope,
+#     min_elevation,
+#     min_obs_duration,
+#     exposure_duration,
+#     observer_lla_per_telescope,
+#     X,
+#     Y_per_telescope,
+# )
+
+# # plot of selected passes
+# fig_sol = Figure(size=(1400,800))
+# ax_polar1 = PolarAxis(fig_sol[1,1])
+# TelescopeTasking.polar_plot_passes!(ax_polar1, passes_1; color=:grey, linewidth=0.3)
+# TelescopeTasking.polar_plot_passes!(ax_polar1, selected_passes_per_telescope[1]; 
+#     linewidth=1.5, color_by_target=true, exposure_only=true)
+
+#     ax_polar2 = PolarAxis(fig_sol[2,1])
+# TelescopeTasking.polar_plot_passes!(ax_polar2, passes_1; color=:grey, linewidth=0.3)
+# TelescopeTasking.polar_plot_passes!(ax_polar2, selected_passes_per_telescope[2]; 
+#     linewidth=1.5, color_by_target=true, exposure_only=true)
     
-# plot time-history
-axes = [Axis(fig_sol[1,2]; xlabel="Time, hour", ylabel="Azimuth, deg"),
-        Axis(fig_sol[1,3]; xlabel="Time, hour", ylabel="Elevation, deg")]
-TelescopeTasking.plot_time_history!(axes, passes_1; jd_ref=jd0_ref, color=:grey, linewidth=0.3)
-TelescopeTasking.plot_time_history!(axes, selected_passes_per_telescope[1]; 
-    jd_ref=jd0_ref,  linewidth=1.5, color_by_target=true, exposure_only=true)
+# # plot time-history
+# axes = [Axis(fig_sol[1,2]; xlabel="Time, hour", ylabel="Azimuth, deg"),
+#         Axis(fig_sol[1,3]; xlabel="Time, hour", ylabel="Elevation, deg")]
+# TelescopeTasking.plot_time_history!(axes, passes_1; jd_ref=jd0_ref, color=:grey, linewidth=0.3)
+# TelescopeTasking.plot_time_history!(axes, selected_passes_per_telescope[1]; 
+#     jd_ref=jd0_ref,  linewidth=1.5, color_by_target=true, exposure_only=true)
 
 
-axes = [Axis(fig_sol[2,2]; xlabel="Time, hour", ylabel="Azimuth, deg"),
-        Axis(fig_sol[2,3]; xlabel="Time, hour", ylabel="Elevation, deg")]
-TelescopeTasking.plot_time_history!(axes, passes_1; jd_ref=jd0_ref, color=:grey, linewidth=0.3)
-TelescopeTasking.plot_time_history!(axes, selected_passes_per_telescope[2]; 
-    jd_ref=jd0_ref,  linewidth=1.5, color_by_target=true, exposure_only=true)
+# axes = [Axis(fig_sol[2,2]; xlabel="Time, hour", ylabel="Azimuth, deg"),
+#         Axis(fig_sol[2,3]; xlabel="Time, hour", ylabel="Elevation, deg")]
+# TelescopeTasking.plot_time_history!(axes, passes_1; jd_ref=jd0_ref, color=:grey, linewidth=0.3)
+# TelescopeTasking.plot_time_history!(axes, selected_passes_per_telescope[2]; 
+#     jd_ref=jd0_ref,  linewidth=1.5, color_by_target=true, exposure_only=true)
 
-display(fig_sol)
+# display(fig_sol)
 println("Done!")
