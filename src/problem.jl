@@ -92,7 +92,8 @@ end
 
 Instantiate JuMP model and solve single telescope scheduling problem.
 """
-function solve(problem::TelescopeTaskingProblem, solver; verbose::Bool = true,
+function solve(problem::TelescopeTaskingProblem, solver;
+    verbose::Bool = true,
     bias_objective::Bool = false,
 )
     if problem.m == 0 
@@ -105,6 +106,9 @@ function solve(problem::TelescopeTaskingProblem, solver; verbose::Bool = true,
 
     # create model
     model =  Model(solver, add_bridges = false)
+    if verbose == false
+        set_silent(model)
+    end
     @variable(model, Y[1:problem.n], Bin);      # whether observation arc i is selected
     @variable(model, X[1:problem.m], Bin);      # whether target k is observed (sufficiently many times)
     @printf("Created variables; %1.4f sec\n", time() - tstart)
@@ -288,6 +292,9 @@ function solve(
 
     # create model
     model = Model(solver; add_bridges = false)
+    if verbose == false
+        set_silent(model)
+    end
     #N = sum(problem.n_per_telescope)
     @variable(model, Y[1:problem.n_total], Bin);      # whether observation arc i is selected
     @variable(model, X[1:problem.m], Bin);            # whether target k is observed (sufficiently many times)
