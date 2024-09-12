@@ -45,7 +45,7 @@ tles = read_tles(tles_str)
 names_include = ["STARLINK",]#, "GLOBALSTAR", "IRIDIUM"]
 tles = TelescopeTasking.filter(tles, names_include = names_include)
 @show length(tles)
-tles = tles[1:200]          # only use subset of them
+tles = tles[1:1000]          # only use subset of them
 
 # get passes
 min_elevation = deg2rad(30)
@@ -55,7 +55,7 @@ exposure_duration = 60              # in seconds
 observer_lla_1 = [deg2rad(45), deg2rad(13), 30.0]
 jds_night_1 = TelescopeTasking.earliest_night(jd0_ref, observer_lla_1, eop_iau1980)
 jd0_obs_1 = jds_night_1[1]
-obs_duration_1 = 86400 * (jds_night_1[2] - jds_night_1[1]) * 0.2
+obs_duration_1 = 86400 * (jds_night_1[2] - jds_night_1[1]) #* 0.2
 @printf("Observation duration: %1.4f hours\n", obs_duration_1/3600)
 @assert jd0_ref <= jd0_obs_1
 
@@ -70,7 +70,7 @@ passes_per_telescope = [passes_1, passes_1]
 @printf("Total passes: %d\n", length(passes_1) + length(passes_1))
 
 # construct original problem
-num_exposure = 1
+num_exposure = 2
 slew_rate = deg2rad(2)      # rad/s
 buffer_times = [15, 0]      # times in seconds
 problem = TelescopeTasking.MultiTelescopeTaskingProblem(
@@ -81,18 +81,44 @@ problem = TelescopeTasking.MultiTelescopeTaskingProblem(
 )
 @show problem;
 
+# actually solve
+X_gurobi, _, Y_per_telescope_gurobi, _ = TelescopeTasking.solve(problem, Gurobi.Optimizer; verbose=false)
+@printf("Gurobi's objective = %d\n", sum(value.(X_gurobi)))
+
 # initial solve via greedy algorithm
-_, _, initial_patterns, _ = TelescopeTasking.solve_greedy(problem)
+X_greedy, _, Y_per_telescope_greedy, _ = TelescopeTasking.solve_greedy(problem)
+@printf("Greedy's objective = %d\n", sum(X_greedy))
 
 # solve via column generation
 # solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
 #     "TimeLimit" => 1200)
 solver = HiGHS.Optimizer
+
+Y_poor = zeros(Int, problem.n_per_telescope[1])
+Y_poor[1] = 1
+
+Y_poor2 = zeros(Int, problem.n_per_telescope[1])
+Y_poor2[2] = 1
+
+#initial_patterns = [Y_poor, Y_poor2] #Y_per_telescope_greedy[1], Y_per_telescope_greedy[1]]
+initial_patterns = Y_per_telescope_greedy
 reduced_master_problem, pricing_problem = TelescopeTasking.solve_column_generation(
-    problem, solver, initial_patterns; maxiter=2);
+    problem, solver, initial_patterns; maxiter=100);
+Y_per_telescope_cg = TelescopeTasking.master_problem_to_schedules(reduced_master_problem);
+@show reduced_master_problem
 
+@printf("Greedy's objective = %d\n", sum(value.(X_greedy)))
+println("   Number of passes: $([sum(y) for y in Y_per_telescope_greedy])")
 
+@printf("Gurobi's objective = %d\n", sum(value.(X_gurobi)))
+println("   Number of passes: $([sum(y) for y in Y_per_telescope_gurobi])")
 
+# fig = Figure(size=(600,600))
+# ax = Axis(fig[1,1])
+# for duals in pricing_problem.duals_iter[1:2]
+#     scatterlines!(ax, 1:length(duals), duals)# color=:blue, strokewidth=0)
+# end
+# display(fig)
 # # solve problem
 # solver = MOI.OptimizerWithAttributes(Gurobi.Optimizer,
 #     "TimeLimit" => 1200)
