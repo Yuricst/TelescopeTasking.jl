@@ -18,7 +18,7 @@ Then, run tests to check installation is successful:
 julia> include("tests/runtest.jl")
 ```
 
-Jupyter notebook examples are located in `./examples/`. 
+Jupyter notebook examples are located in [`./examples/`](https://github.gatech.edu/SSOG/TelescopeTasking.jl/tree/main/examples). 
 
 
 ### Dependencies
