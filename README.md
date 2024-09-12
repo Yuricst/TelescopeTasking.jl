@@ -1,6 +1,8 @@
 # TelescopeTasking.jl
 Deterministic operation scheduling problem for nightly observation
 
+![Image Description](examples/example_STTP_solution.png)
+
 ### Quick start
 
 This repository is developed on Julia v1.10. Download from: [https://julialang.org/downloads/](https://julialang.org/downloads/). 
