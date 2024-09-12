@@ -18,6 +18,9 @@ Then, run tests to check installation is successful:
 julia> include("tests/runtest.jl")
 ```
 
+Jupyter notebook examples are located in `./examples/`. 
+
+
 ### Dependencies
 
 Dependencies are listed in `Project.toml`. 
