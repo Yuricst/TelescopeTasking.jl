@@ -31,7 +31,7 @@ function earliest_night(
     observer_lla::Vector,
     eop_iau1980::EopIau1980,;
     elevation_threshold::Real = -deg2rad(12),
-    steps::Int = 2000,
+    steps::Int = 6000,
 )
     # epochs at which we query sun position
     jds = LinRange(jd0, jd0 + 2.5, steps)

@@ -35,6 +35,7 @@ for config_filename in config_filenames
     config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
     target_choice = "S1"
     solver_choice = "Gurobi"
+    num_exposures = [1, 2, 3]
 
     # choose solver
     if solver_choice == "Gurobi"
@@ -74,7 +75,6 @@ for config_filename in config_filenames
     obs_duration = 86400 * (jds_night[2] - jds_night[1])
 
     # iterate through num_exposure
-    num_exposures = [1, 2, 3]
     for num_exposure in num_exposures
         _experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
         println(" *************** Experiment name: $_experiment_name *************** ")

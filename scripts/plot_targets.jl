@@ -18,17 +18,17 @@ using SatelliteToolboxTransformations
 
 include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
-# # load config jsons
-# target_choice = "A"
+# load config jsons
+target_choice = "A"
 
 # # load Earth parameters
 # # eop_iau1980 = fetch_iers_eop()
 # eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 # eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
-# # load TLE files
-# tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
-# println("There are $(length(tles)) TLEs in the file")
+# load TLE files
+tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
+println("There are $(length(tles)) TLEs in the file")
 
 # # plot in 3D
 # fig = Figure(size=(500, 500))
@@ -49,15 +49,11 @@ include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 #     lines!(ax3, rvs[1,:]./1e3, rvs[2,:]./1e3, rvs[3,:]./1e3, color=:red, linewidth=0.2)
 # end
 
-files = ["cosmos-1408-debris.txt", "cosmos-2251-debris.txt", "fengyun-1c-debris.txt", "iridium-33-debris.txt"]
-tles_cosmos1408 = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", files[1]), String))
-tles_cosmos2251 = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", files[2]), String))
-tles_fengyun1c = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", files[3]), String))
-tles_iridium33 = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", files[4]), String))
-
-names = ["Kosmos 1408", "Kosmos 2251", "Fengyun 1C", "Iridium 33"]
-tles_list = [tles_cosmos1408, tles_cosmos2251, tles_fengyun1c, tles_iridium33]
-
+names = ["GLOBALSTAR", "IRIDIUM", "ORBCOMM"]
+tles_globalstar = [tle for tle in tles if occursin("GLOBALSTAR", tle.name)]
+tles_iridium = [tle for tle in tles if occursin("IRIDIUM", tle.name)]
+tles_orbcomm = [tle for tle in tles if occursin("ORBCOMM", tle.name)]
+tles_list = [tles_globalstar, tles_iridium, tles_orbcomm]
 fontsize = 20
 
 fig_en = Figure(size=(500,400))
@@ -99,7 +95,7 @@ for (idx,(tles, name)) in enumerate(zip(tles_list, names))
     
     @printf("Period average for %s : %1.2f hr\n", name, sum(periods)/length(periods)/3600)
 end
-axislegend(ax_en, position=:rb, labelsize=fontsize-5)
+axislegend(ax_en, position=:cb, labelsize=fontsize-5)
 
 save(joinpath(@__DIR__, "plots", "targets_orbits_en.png"), fig_en)
 save(joinpath(@__DIR__, "plots", "targets_orbits_iW.png"), fig_iW)

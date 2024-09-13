@@ -8,9 +8,11 @@ include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 # load config jsons
 config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP1.json"))
-target_choice = "S1"
+target_choice = "A"
 
-if target_choice == "B"
+if target_choice == "A"
+    target_set_name = "A"
+elseif target_choice == "B"
     target_set_name = "Debris"
 elseif target_choice == "C"
     target_set_name = "Starlink"

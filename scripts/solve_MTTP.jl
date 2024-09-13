@@ -27,8 +27,10 @@ function main()
     config_filenames = [
         "config_MTTP1.json",
         "config_MTTP2.json",
-        # "config_MTTP3.json",
+        "config_MTTP3.json",
+        "config_MTTP4.json",
     ]
+    num_exposures = [1, 2, 3]
 
     for config_filename in config_filenames
 
@@ -116,7 +118,6 @@ function main()
         end
 
         # iterate through num_exposure
-        num_exposures = [1,]# 2, 3]
         for num_exposure in num_exposures
             _experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
             println(" *************** Experiment name: $_experiment_name *************** ")

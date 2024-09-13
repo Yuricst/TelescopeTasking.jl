@@ -16,7 +16,7 @@ function tles_config_A()
     @printf("%d objects from active.txt loaded\n", length(tles))
 
     # filter them
-    names_include = ["GLOBALSTAR", "IRIDIUM"]
+    names_include = ["GLOBALSTAR", "IRIDIUM", "ORBCOMM"]
     tles = TelescopeTasking.filter(tles, names_include = names_include)
     @printf("%d objects after filtering for ", length(tles))
     println(names_include)
@@ -133,13 +133,13 @@ function tles_config_S(;subname::String)
 end
 
 
-# tles_config_A()
+tles_config_A()
 # tles_config_B()
 # tles_config_C()
 # tles_config_D()
-tles_config_S(subname = "0")
+# tles_config_S(subname = "0")
 tles_config_S(subname = "1")
-tles_config_S(subname = "2")
-tles_config_S(subname = "3")
-tles_config_S(subname = "4")
+# tles_config_S(subname = "2")
+# tles_config_S(subname = "3")
+# tles_config_S(subname = "4")
 println("Done!")

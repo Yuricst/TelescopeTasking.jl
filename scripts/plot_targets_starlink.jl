@@ -60,11 +60,10 @@ for (idx,(tles,set_name)) in enumerate(zip([tles_S1,tles_S2,tles_S3,tles_S4],nam
     raan = [tle.raan for tle in tles]
     DeltaE = rad2deg.(2pi  * periods ./ TG)
 
-    scatter!(ax_en, smas, eccentricity, label=set_name, markersize=5, color=colors[idx])
-    scatter!(ax_iW, raan, inclination, label=set_name, markersize=5, color=colors[idx])
+    set_name_ = set_name * " ($(length(tles)))"
+    scatter!(ax_en, smas, eccentricity, label=set_name_, markersize=5, color=colors[idx])
+    scatter!(ax_iW, raan, inclination, label=set_name_, markersize=5, color=colors[idx])
 end
-
-@printf("Period average for %s : %1.2f hr\n", name, sum(periods)/length(periods)/3600)
 
 axislegend(ax_en, position=:lb, labelsize=fontsize-5)
 

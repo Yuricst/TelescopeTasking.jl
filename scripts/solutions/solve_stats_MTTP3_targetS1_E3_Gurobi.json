@@ -1,0 +1,1 @@
+{"relative_gap":0.08629441624365482,"num_variables":5952,"status":"TIME_LIMIT","dual_status":"NO_SOLUTION","primal_status":"FEASIBLE_POINT","simplex_iterations":197.0,"solver_name":"Gurobi","barrier_iterations":197.0,"solve_time":601.055999994278}
