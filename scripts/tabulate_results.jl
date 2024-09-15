@@ -178,7 +178,11 @@ function main()
             marker=markers[idx],
             color=colors[idx],)
     end
-    axislegend(axis, position=:rt)
+    if target_choice == "A"
+        axislegend(axis, position=:lb)
+    else
+        axislegend(axis, position=:rt)
+    end
     save(joinpath(@__DIR__, "plots", "NumObserved_vs_E_target$(target_choice).pdf"), fig_observed)
     display(fig_observed)
 end

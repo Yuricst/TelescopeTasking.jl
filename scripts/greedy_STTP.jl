@@ -26,15 +26,13 @@ function main()
 
     config_filenames = [
         "config_STTP1.json",
-        # "config_STTP2.json",
     ]
 
-    for config_filename in config_filenames
+    for config_filename in config_filenames, target_choice in ["A", "S1", "S2"]
         # load config jsons
         config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
         config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
-        target_choice = "S1"
-
+        
         # load TLE files
         tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
         println("There are $(length(tles)) TLEs in the file")
@@ -117,3 +115,5 @@ function main()
         end
     end
 end
+
+main()

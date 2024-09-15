@@ -33,7 +33,7 @@ for config_filename in config_filenames
     # load config jsons
     config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
     config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
-    target_choice = "S1"
+    target_choice = "S2"
     solver_choice = "Gurobi"
     num_exposures = [1, 2, 3]
 

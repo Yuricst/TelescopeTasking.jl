@@ -26,9 +26,9 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load config jsons
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
-config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP2.json"))
+config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP1.json"))
 target_choice = "A"
-num_exposure = 2
+num_exposure = 1
 solver_choice = "Gurobi"
 experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
 @printf("Plotting pass from experiment %s\n", experiment_name)
@@ -38,7 +38,6 @@ tles = read_tles(read(joinpath(@__DIR__, "../data/tles/AAS25target$(target_choic
 
 # load solutions
 solution_dict = JSON.parsefile(joinpath(@__DIR__, "solutions/solution_$(experiment_name)_$(solver_choice).json"))
-# jd0_obs = solution_dict["jd0_obs"]
 min_obs_duration = solution_dict["min_obs_duration"]
 exposure_duration = solution_dict["exposure_duration"]
 obs_duration_per_telescope = solution_dict["obs_duration_per_telescope"]
@@ -46,14 +45,24 @@ observer_lla_per_telescope = solution_dict["observer_lla_per_telescope"]
 Y_per_telescope = solution_dict["Y_per_telescope"]
 passes_per_telescope = solution_dict["passes_per_telescope"]
 
+# passes_per_telescope = [
+#     [TelescopeTasking.VisiblePass(pass_dict) for pass_dict in passes_dict_list]
+#     for passes_dict_list in passes_per_telescope
+# ]
+# selected_passes_per_telescope = [
+#     [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
+#     for (passes,Y) in zip(passes_per_telescope, Y_per_telescope)
+# ]
 passes_per_telescope = [
     [TelescopeTasking.VisiblePass(pass_dict) for pass_dict in passes_dict_list]
     for passes_dict_list in passes_per_telescope
 ]
-selected_passes_per_telescope = [
+
+selected_passes_per_telescope = TelescopeTasking.filter([
     [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
     for (passes,Y) in zip(passes_per_telescope, Y_per_telescope)
-]
+], num_exposure)
+
 
 # plot of selected passes
 fontsize = 24

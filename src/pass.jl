@@ -179,15 +179,64 @@ end
 """
 Remove passes with less than `num_exposure` exposures from list of passes
 """
-function filter(passes::Vector{VisiblePass}, num_exposure::Int)
+function filter(passes::Vector{VisiblePass}, num_exposure::Int; get_indices::Bool = false)
     pass_to_designators = [pass.tle.international_designator for pass in passes]
     designators = unique(pass_to_designators)
     passes_filtered = VisiblePass[]
+    index_kept = Int[]
+
     for designator in designators
         passes_designator = [pass for pass in passes if pass.tle.international_designator == designator]
-        if length(passes_designator) >= num_exposure
+        if length(passes_designator) == num_exposure
             append!(passes_filtered, passes_designator)
+            append!(index_kept, [findfirst(x -> x == designator, pass_to_designators)])
+
+        elseif length(passes_designator) > num_exposure
+            # keep only the first `num_exposure` passes
+            append!(passes_filtered, passes_designator[1:num_exposure])
+            for i = 1:num_exposure
+                append!(index_kept, [findnext(x -> x == designator, pass_to_designators, i)])
+            end
         end
     end
-    return passes_filtered
+
+    # re-sort them chronologically based on pass.t0_exposure then return them
+    if get_indices
+        return sort(passes_filtered), index_kept
+    else
+        return sort(passes_filtered)
+    end
+end
+
+
+function filter(passes_per_telescope::Vector{Vector{VisiblePass}}, num_exposure::Int)
+
+    # get number of times each target is observed
+    designators = vcat([
+        [pass.tle.international_designator for pass in passes]
+        for passes in passes_per_telescope]...)
+
+    E_per_designator = Dict{String, Int}()
+    for designator in unique(designators)
+        E_per_designator[designator] = count(x -> x == designator, designators)
+    end
+
+    designator_counts = Dict()
+    for designator in unique(designators)
+        designator_counts[designator] = 0
+    end
+
+    passes_filtered_per_telescope = Vector{Vector{VisiblePass}}()
+    for passes in passes_per_telescope
+        passes_filtered = VisiblePass[]
+        for pass in passes
+            if (designator_counts[pass.tle.international_designator] < num_exposure) && (E_per_designator[pass.tle.international_designator] >= num_exposure)
+                push!(passes_filtered, pass)
+                designator_counts[pass.tle.international_designator] += 1
+            end
+        end
+        @show length(passes_filtered)
+        push!(passes_filtered_per_telescope, passes_filtered)
+    end
+    return passes_filtered_per_telescope
 end
