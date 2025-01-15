@@ -54,19 +54,18 @@ eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load TLE files
-path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "planet.txt")
+path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "active_GPS.txt")
 tles_str = read(path_to_tles, String)
 
 # convert to TLE objects
 tles = read_tles(tles_str)
 
 # propagate one of them
-tle = tles[100]
-jd0 = tle_epoch(tle)            # initial epoch of TLE in Julian day
+jd0 = tle_epoch(tles[1])            # initial epoch of TLE in Julian day
 
-sgp4d = sgp4_init(tle)
-dt_min = 0.1
-dts_min = 0:dt_min:12*60        # propagate over 6 hours
+sgp4d = sgp4_init(tles[1])
+dt_min = 0.5
+dts_min = 0:dt_min:30*24*60        # propagate over 6 hours
 rs_TEME, vs_TEME = zeros(3, length(dts_min)), zeros(3, length(dts_min))
 rs_ITRF = zeros(3, length(dts_min))
 rs_ENU = zeros(3, length(dts_min))

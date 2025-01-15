@@ -103,6 +103,7 @@ for config_filename in config_filenames
         end
 
         # construct problem
+        # slew_rate = deg2rad(0.05)         # overwrite for manuscript
         problem = TelescopeTasking.TelescopeTaskingProblem(
             _passes, num_exposure,
             slew_rate;
@@ -130,10 +131,10 @@ for config_filename in config_filenames
             ylabelsize = fontsize,
             xticklabelsize = fontsize-2,
             yticklabelsize = fontsize-2,
-            xlabel=L"Pass $j$", 
+            xlabel=L"Pass $i$", 
             ylabel=L"Target $k$", 
             yreversed=true)
-        spy!(ax_spy_A, transpose(problem.A))
+        spy!(ax_spy_A, problem.A) #transpose(problem.A))
         save(joinpath(@__DIR__, "plots",
             "spy_A_$_experiment_name.png"), fig_spy_A)
     end

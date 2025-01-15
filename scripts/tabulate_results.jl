@@ -16,10 +16,10 @@ function main()
 
     # load config jsons
     instance_names = ["STTP1", "MTTP1", "MTTP2", "MTTP3", "MTTP4"]  #"STTP2", "MTTP1", "MTTP2", "MTTP3"]
-    @show target_choice = "A"
+    @show target_choice = "S2"
 
     experiment_name_dict = Dict(
-        "STTP1" => "STTP I",
+        "STTP1" => "STTP  ",
         "STTP2" => "STTP II",
         "MTTP1" => "MTTP I",
         "MTTP2" => "MTTP II",

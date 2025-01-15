@@ -7,15 +7,21 @@ using ProgressMeter: @showprogress
 using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 
+include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
+
 include(joinpath(@__DIR__, "elements.jl"))
 
 
 # load TLE files
-path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "iridium-33-debris.txt")
-tles_str = read(path_to_tles, String)
+# path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "iridium-33-debris.txt")
+# tles_str = read(path_to_tles, String)
 
-# convert to TLE objects
+# # filter them
+path_to_tles = joinpath(@__DIR__, "..", "data", "tles", "active_GPS.txt")
+tles_str = read(path_to_tles, String)
 tles = read_tles(tles_str)
+names_include = ["GPS",]# "IRIDIUM", "ORBCOMM"]
+tles = TelescopeTasking.filter(tles, names_include = names_include)#, sma_max=3.0e5)
 
 # propagate one of them
 sgp4d = sgp4_init(tles[1])

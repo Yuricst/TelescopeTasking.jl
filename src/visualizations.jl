@@ -30,17 +30,17 @@ function polar_plot_passes!(
         colors = cgrad(cgrad_designator, max(2,length(designators)), categorical = true)
     end
 
-    for pass in passes
+    for (i,pass) in enumerate(passes)
         if color_by_target == true
             index = findfirst(x -> x == pass.tle.international_designator, designators)
             _color = colors[index]
         else
-            _color = color
+            if typeof(color) == Symbol
+                _color = color
+            else
+                _color = color[i]
+            end
         end
-
-        # periodic_lines!(ax, rad2deg.(pass.azimuths), rad2deg.(pass.elevations), 100,
-        #     color = _color,
-        #     linewidth = linewidth)
         lines!(ax, rad2deg.(pass.azimuths), rad2deg.(pass.elevations), 
             color = _color,
             linewidth = linewidth)
@@ -66,12 +66,16 @@ function polar_plot_passes!(
         colors = cgrad(cgrad_designator, max(2,length(designators)), categorical = true)
     end
 
-    for pass in passes
+    for (i,pass) in enumerate(passes)
         if color_by_target == true
             index = findfirst(x -> x == pass.tle.international_designator, designators)
             _color = colors[index]
         else
-            _color = color
+            if typeof(color) == Symbol
+                _color = color
+            else
+                _color = color[i]
+            end
         end
         
         if exposure_only == false
@@ -146,7 +150,7 @@ Plot slewing maneuver between two passes
 function polar_plot_interpass_slew!(
     ax::PolarAxis,
     passes::Vector{VisiblePass};
-    color = :black,
+    color::Symbol = :black,
     linewidth::Real = 1.0,
     linestyle = :solid,
     steps::Int = 100,
@@ -157,6 +161,30 @@ function polar_plot_interpass_slew!(
         az_slew, el_slew = sphere_shortest_path(az_1[end], el_1[end], az_2[1], el_2[1], steps)
         lines!(ax, az_slew, 90 .- rad2deg.(el_slew),
             color = color,
+            linewidth = linewidth,
+            linestyle = linestyle)
+    end
+end
+
+
+"""
+Plot slewing maneuver between two passes
+"""
+function polar_plot_interpass_slew!(
+    ax::PolarAxis,
+    passes::Vector{VisiblePass},
+    colors;
+    linewidth::Real = 1.0,
+    linestyle = :solid,
+    steps::Int = 100,
+)
+    @assert length(colors) >= length(passes) - 1
+    for i in 1:length(passes)-1
+        _, az_1, el_1 = get_exposure_history(passes[i])
+        _, az_2, el_2 = get_exposure_history(passes[i+1])
+        az_slew, el_slew = sphere_shortest_path(az_1[end], el_1[end], az_2[1], el_2[1], steps)
+        lines!(ax, az_slew, 90 .- rad2deg.(el_slew),
+            color = colors[i],
             linewidth = linewidth,
             linestyle = linestyle)
     end
