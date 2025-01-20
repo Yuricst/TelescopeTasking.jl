@@ -105,6 +105,5 @@ end
 # scatter!(ax_L, 1:length(Ls_nonzero), rad2deg.(Ls_nonzero); color=:grey10, markersize=5)
 
 # # display figure
-# display(fig_sol)
-display(fig_time)
-# # display(fig_L)
+# display(fig_time)
+# display(fig_L)

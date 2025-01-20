@@ -26,7 +26,7 @@ function main()
     # load config jsons
     telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
     config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP1.json"))
-    target_choice = "S1"
+    target_choice = "A"    # A or S1
     num_exposure = 1
     solver_choice = "Gurobi"
     experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
@@ -69,6 +69,7 @@ function main()
     Y = [el > 0.5 for el in solution_dict["Y"]]
     selected_passes = [pass for (pass, y) in zip(passes, value.(Y)) if y > 0.5]
     @show length(selected_passes)
+    figures = Figure[]
 
     i_choose_list = [1, 15, 30, 45] #, 60, 75]
     for j in 1:length(i_choose_list)
@@ -94,9 +95,11 @@ function main()
             linewidth=3, color=colors, color_by_target=false, exposure_only=true)
         TelescopeTasking.polar_plot_interpass_slew!(ax_sol, selected_passes_plot, colors; linestyle = :dash)
         CairoMakie.save(joinpath(@__DIR__, "plots", "slew_STTP_target$(target_choice)_start$j.svg"), fig_sol)
+        push!(figures, fig_sol)
     end
-    #display(fig_sol)
+    return figures
 end 
 
-main()
+figures = main()
+display(figures[1])
 println("Done!")

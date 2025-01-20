@@ -18,7 +18,11 @@ using SatelliteToolboxTransformations
 
 include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
-function main()
+
+"""
+`target_choice` must be from "A", "S1", or "S2
+"""
+function main(;target_choice = "A")
     # load Earth parameters
     # eop_iau1980 = fetch_iers_eop()
     eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
@@ -37,14 +41,20 @@ function main()
         # load config jsons
         config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
         config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
-        target_choice = "S2"
-        solver_choice = "Gurobi"
+        solver_choice = "Gurobi"    # Gurobi or GPLK or HiGHS
+        time_limit = 3600           # 600 or 3600, in seconds
+        save_dir = "solutions_JASS"
+
+        filepath_log = "log_$(_experiment_name)_$(solver_choice).log"
+        filepath_solution = "solution_$(_experiment_name)_$(solver_choice).json"
+        filepath_stats = "solve_stats_$(_experiment_name)_$(solver_choice).json"
 
         # choose solver
         if solver_choice == "Gurobi"
             solver = MOI.OptimizerWithAttributes(
                 Gurobi.Optimizer,
-                "TimeLimit" => 600,
+                "TimeLimit" => time_limit,
+                "LogFile" => filepath_log,
                 "Method" => 0,
             )
         elseif solver_choice == "GLPK"
@@ -156,15 +166,15 @@ function main()
                 _X,
                 _Y_per_telescope,
             )
-            open(joinpath(@__DIR__, "solutions", "solution_$(_experiment_name)_$(solver_choice).json"), "w") do io
+            open(joinpath(@__DIR__, save_dir, filepath_solution), "w") do io
                 write(io, JSON.json(_solution_dict))
             end
 
-            open(joinpath(@__DIR__, "solutions", "solve_stats_$(_experiment_name)_$(solver_choice).json"), "w") do io
+            open(joinpath(@__DIR__, save_dir, filepath_stats), "w") do io
                 write(io, JSON.json(_solve_stats_dict))
             end
         end
     end
 end
 
-main()
+main(;target_choice = "A")
