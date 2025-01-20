@@ -1,6 +1,7 @@
 """Test with passes IO functions"""
 
 using Test
+using SatelliteToolboxTle
 using SatelliteToolboxTransformations
 
 include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
