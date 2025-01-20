@@ -1,7 +1,11 @@
 # TelescopeTasking.jl
-Deterministic operation scheduling problem for nightly observation
+
+Solve the short-term telescope tasking problem for single or multiple telescopes via a job-shop scheduling problem (JSSP) approach. 
+
+[2025 AAS/AIAA paper (best paper award)](https://s3.amazonaws.com/amz.xcdsystem.com/A464D031-C624-C138-7D0E208E29BC4EDD_abstract_File24835/PreprintPaperUploadPDF_321_0103063552.pdf)
 
 ![Image Description](examples/example_STTP_solution.png)
+
 
 ### Quick start
 
@@ -17,10 +21,10 @@ julia> ]
 Then, run tests to check installation is successful:
 
 ```julia
-julia> include("tests/runtest.jl")
+(TelescopeTasking) pkg> test
 ```
 
-Jupyter notebook examples are located in [`./examples/`](https://github.gatech.edu/SSOG/TelescopeTasking.jl/tree/main/examples). 
+Jupyter notebook examples are located in [`./examples`](https://github.gatech.edu/SSOG/TelescopeTasking.jl/tree/main/examples). 
 
 
 ### Dependencies
@@ -35,10 +39,23 @@ Part of the package dependencies are subsets of the [SatelliteToolbox.jl](https:
 The `TLE` object's structure can be found in the [SatelliteToolboxTle.jl docs page](https://juliaspace.github.io/SatelliteToolboxTle.jl/stable/man/tle_structure/). 
 
 
-### Scripts for AAS 2025
+### Scripts for 2025 AAS/AIAA Space Flight Mechanics Meeting
 
-Scripts for AAS 2025 are located in folder `./scripts`;
+Scripts for the 2025 AAS SFMM conference are located in folder `./scripts`;
+
+#### Run experiments: 
 
 - `scripts/solve_STTP.jl` : solve an instance of the STTP with $E = 1,2,3$ with chosen target set
 - `scripts/solve_MTTP.jl` : solve an instance of the MTTP with $E = 1,2,3$ with chosen target set
+- `scripts/greedy_STTP.jl` : run greedy algorithm on STTP instances with $E = 1$
+- `scripts/greedy_MTTP.jl` : run greedy algorithm on MTTP instances with $E = 1$
+ 
 
+#### Visualizations:
+
+- `animate_targets.jl` : ECEF 3D animation of targets, colored by pass & observation status (see animation below)
+- `plot_STTP_slew.jl` : slew history, colored by elapsed time (Fig. 5 in conference manuscript)
+- `plot_MTTP_solution_passes.jl` : all passes for each observer (Fig. 6, 9)
+
+
+![Image Description](scripts/animations/ttp_solution_ecef_STTP1_targetA_E1_Gurobi.gif)
