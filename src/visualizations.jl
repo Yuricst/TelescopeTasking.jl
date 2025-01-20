@@ -189,3 +189,31 @@ function polar_plot_interpass_slew!(
             linestyle = linestyle)
     end
 end
+
+
+
+"""
+Plot wireframe of a sphere
+
+# Arguments
+- `ax::Union{Axis3,LScene}`: Axis3 or LScene object
+- `radius::Real`: radius of the sphere
+- `center::Vector`: center of the sphere
+- `nsph::Int=20`: number of points along latitude and longitude
+- `color=:black`: color of the wireframe
+- `linewidth=1.0`: linewidth of the wireframe
+"""
+function plot_sphere_wireframe!(ax::Union{Axis3,LScene}, radius::Real, center::Vector, nsph::Int=20;
+    color=:black, linewidth=1.0, label=nothing)
+    # Generate spherical coordinates
+    θ = range(0, stop=2π, length=nsph)
+    ϕ = range(0, stop=π, length=Int(ceil(nsph/2)))
+
+    # Generate points on the sphere
+    xsphere = [center[1] + radius * cos(θ[i]) * sin(ϕ[j]) for j in 1:Int(ceil(nsph/2)), i in 1:nsph]
+    ysphere = [center[2] + radius * sin(θ[i]) * sin(ϕ[j]) for j in 1:Int(ceil(nsph/2)), i in 1:nsph]
+    zsphere = [center[3] + radius * cos(ϕ[j]) for j in 1:Int(ceil(nsph/2)), i in 1:nsph]
+    wireframe!(ax, xsphere, ysphere, zsphere, 
+               label=label, color=color, linewidth=linewidth)
+    return
+end
