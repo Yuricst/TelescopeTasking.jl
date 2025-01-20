@@ -15,7 +15,7 @@ struct VisiblePass
     azel0::Vector{Float64}
     azelm::Vector{Float64}
     azelf::Vector{Float64}
-
+    
     azel0_exposure::Vector{Float64}
     azelf_exposure::Vector{Float64}
 
