@@ -59,7 +59,7 @@ function main(;target_choice = "A")
                 solver = MOI.OptimizerWithAttributes(
                     Gurobi.Optimizer,
                     "WorkLimit" => time_limit,
-                    "LogFile" => filepath_log,
+                    "LogFile" => joinpath(@__DIR__, save_dir, "logs", filepath_log),
                     "Method" => 0,
                 )
             elseif solver_choice == "GLPK"
