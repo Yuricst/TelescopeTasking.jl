@@ -43,55 +43,60 @@ function main(;target_choice = "A")
         time_limit = 3600           # 600 or 3600, in seconds
         save_dir = "solutions_JASS"
 
-        filepath_log = "log_$(_experiment_name)_$(solver_choice).log"
-        filepath_solution = "solution_$(_experiment_name)_$(solver_choice).json"
-        filepath_stats = "solve_stats_$(_experiment_name)_$(solver_choice).json"
-
-        # choose solver
-        if solver_choice == "Gurobi"
-            solver = MOI.OptimizerWithAttributes(
-                Gurobi.Optimizer,
-                "TimeLimit" => time_limit,
-                "LogFile" => filepath_log,
-                "Method" => 0,
-            )
-        elseif solver_choice == "GLPK"
-            solver = GLPK.Optimizer
-        elseif solver_choice == "HiGHS"
-            solver = MOI.OptimizerWithAttributes(
-                HiGHS.Optimizer,
-                "TimeLimit" => time_limit,      # FIXME syntax?
-            )
-        else
-            error("Solver choice $solver_choice not recognized!")
-        end
-
-        # load TLE files
-        tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
-        println("There are $(length(tles)) TLEs in the file")
-
-        # get passes
-        slew_rate = deg2rad(config_telescope["slew_rate"])                         # rad/s
-        buffer_times = [config_telescope["buffer_t0"], config_telescope["buffer_t1"]]     # times in seconds
-        min_elevation = deg2rad(config_telescope["min_elevation"] )            # in radians
-        min_obs_duration = config_telescope["min_obs_duration"]                # in seconds
-        exposure_duration = config_telescope["exposure_duration"]              # in seconds
-        observer_lat = deg2rad(config["observer"]["latitude"])          # degrees --> radians
-        observer_lon = deg2rad(config["observer"]["longitude"])         # degrees --> radians
-        observer_alt = config["observer"]["altitude"]                   # meters
-        observer_lla = [observer_lat, observer_lon, observer_alt]
-
-        # initial epoch of local nightfall
-        jd0_ref = config_telescope["jd0_ref"]
-        @assert maximum([tle_epoch(tle) for tle in tles]) <= jd0_ref "TLEs are later than reference JD!"
-        jds_night = TelescopeTasking.earliest_night(jd0_ref, observer_lla, eop_iau1980)
-        jd0_obs = jds_night[1]
-        obs_duration = 86400 * (jds_night[2] - jds_night[1])
-
         # iterate through num_exposure
         for num_exposure in num_exposures
             _experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
             println(" *************** Experiment name: $_experiment_name *************** ")
+
+            filepath_log = "log_$(_experiment_name)_$(solver_choice).log"
+            filepath_solution = "solution_$(_experiment_name)_$(solver_choice).json"
+            filepath_stats = "solve_stats_$(_experiment_name)_$(solver_choice).json"
+
+            # choose solver
+            if solver_choice == "Gurobi"
+                solver = MOI.OptimizerWithAttributes(
+                    Gurobi.Optimizer,
+                    "TimeLimit" => time_limit,
+                    "LogFile" => filepath_log,
+                    "Method" => 0,
+                )
+            elseif solver_choice == "GLPK"
+                solver = GLPK.Optimizer
+            elseif solver_choice == "HiGHS"
+                solver = MOI.OptimizerWithAttributes(
+                    HiGHS.Optimizer,
+                    "TimeLimit" => time_limit,      # FIXME syntax?
+                )
+            else
+                error("Solver choice $solver_choice not recognized!")
+            end
+
+            # load TLE files
+            tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
+            println("There are $(length(tles)) TLEs in the file")
+
+            # get passes
+            slew_rate = deg2rad(config_telescope["slew_rate"])                         # rad/s
+            buffer_times = [config_telescope["buffer_t0"], config_telescope["buffer_t1"]]     # times in seconds
+            min_elevation = deg2rad(config_telescope["min_elevation"] )            # in radians
+            min_obs_duration = config_telescope["min_obs_duration"]                # in seconds
+            exposure_duration = config_telescope["exposure_duration"]              # in seconds
+            observer_lat = deg2rad(config["observer"]["latitude"])          # degrees --> radians
+            observer_lon = deg2rad(config["observer"]["longitude"])         # degrees --> radians
+            observer_alt = config["observer"]["altitude"]                   # meters
+            observer_lla = [observer_lat, observer_lon, observer_alt]
+
+            # initial epoch of local nightfall
+            jd0_ref = config_telescope["jd0_ref"]
+            @assert maximum([tle_epoch(tle) for tle in tles]) <= jd0_ref "TLEs are later than reference JD!"
+            jds_night = TelescopeTasking.earliest_night(jd0_ref, observer_lla, eop_iau1980)
+            jd0_obs = jds_night[1]
+            obs_duration = 86400 * (jds_night[2] - jds_night[1])
+
+        # # iterate through num_exposure
+        # for num_exposure in num_exposures
+        #     _experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
+        #     println(" *************** Experiment name: $_experiment_name *************** ")
             times_measure = [time(),]
             _passes, _ = TelescopeTasking.tles_to_passes(
                 tles,
@@ -151,4 +156,6 @@ function main(;target_choice = "A")
     end
 end
 
-main(;target_choice = "A")
+for _target_choice in ["A", "S1", "S2"]
+    main(target_choice = _target_choice)
+end

@@ -1,0 +1,46 @@
+
+Gurobi 11.0.2 (win64) logging started Mon Jan 20 14:44:36 2025
+
+Set parameter LogFile to value "log_STTP1_targetS2_E2_Gurobi.log"
+Set parameter Method to value 0
+
+Gurobi 11.0.2 (win64) logging started Mon Jan 20 14:44:47 2025
+
+Set parameter LogFile to value "log_STTP1_targetS2_E2_Gurobi.log"
+Gurobi Optimizer version 11.0.2 build v11.0.2rc0 (win64 - Windows 11.0 (22621.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i7-12700, instruction set [SSE2|AVX|AVX2]
+Thread count: 12 physical cores, 20 logical processors, using up to 20 threads
+
+Optimize a model with 3093642 rows, 4788 columns and 6187470 nonzeros
+Model fingerprint: 0x564964ee
+Variable types: 0 continuous, 4788 integer (4788 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+00]
+Found heuristic solution: objective -0.0000000
+Presolve removed 3092546 rows and 4246 columns
+Presolve time: 0.68s
+Presolved: 1096 rows, 542 columns, 2364 nonzeros
+Found heuristic solution: objective 13.0000000
+Variable types: 0 continuous, 542 integer (542 binary)
+Found heuristic solution: objective 48.0000000
+
+Root relaxation: objective 4.900000e+01, 13 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0      49.0000000   49.00000  0.00%     -    1s
+
+Explored 1 nodes (13 simplex iterations) in 1.20 seconds (1.17 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 5: 49 48 44 ... -0
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.900000000000e+01, best bound 4.900000000000e+01, gap 0.0000%
+
+User-callback calls 457, time in user-callback 0.00 sec

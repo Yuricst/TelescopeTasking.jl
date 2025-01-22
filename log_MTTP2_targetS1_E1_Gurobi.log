@@ -1,0 +1,106 @@
+
+Gurobi 11.0.2 (win64) logging started Mon Jan 20 15:49:07 2025
+
+Set parameter LogFile to value "log_MTTP2_targetS1_E1_Gurobi.log"
+Set parameter Method to value 0
+
+Gurobi 11.0.2 (win64) logging started Mon Jan 20 15:49:18 2025
+
+Set parameter LogFile to value "log_MTTP2_targetS1_E1_Gurobi.log"
+Gurobi Optimizer version 11.0.2 build v11.0.2rc0 (win64 - Windows 11.0 (22621.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i7-12700, instruction set [SSE2|AVX|AVX2]
+Thread count: 12 physical cores, 20 logical processors, using up to 20 threads
+
+Optimize a model with 5052743 rows, 5902 columns and 10108576 nonzeros
+Model fingerprint: 0x9c5bfb32
+Variable types: 0 continuous, 5902 integer (5902 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+00]
+Found heuristic solution: objective -0.0000000
+Presolve removed 5026698 rows and 0 columns
+Presolve time: 1.15s
+Presolved: 26045 rows, 5902 columns, 55180 nonzeros
+Variable types: 0 continuous, 5902 integer (5902 binary)
+Found heuristic solution: objective 560.0000000
+
+Root relaxation: objective 6.743333e+02, 4156 iterations, 0.03 seconds (0.02 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  674.33333    0   53  560.00000  674.33333  20.4%     -    1s
+H    0     0                     672.0000000  674.33333  0.35%     -    1s
+     0     0     cutoff    0       672.00000  672.00000  0.00%     -    2s
+
+Cutting planes:
+  Gomory: 4
+  Clique: 5
+  MIR: 1
+  Zero half: 16
+
+Explored 1 nodes (6477 simplex iterations) in 2.14 seconds (2.09 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 4: 672 560 7 -0 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 6.720000000000e+02, best bound 6.720000000000e+02, gap 0.0000%
+
+User-callback calls 630, time in user-callback 0.00 sec
+
+Gurobi 11.0.2 (win64) logging started Tue Jan 21 04:58:30 2025
+
+Set parameter LogFile to value "log_MTTP2_targetS1_E1_Gurobi.log"
+Set parameter Method to value 0
+
+Gurobi 11.0.2 (win64) logging started Tue Jan 21 04:58:41 2025
+
+Set parameter LogFile to value "log_MTTP2_targetS1_E1_Gurobi.log"
+Gurobi Optimizer version 11.0.2 build v11.0.2rc0 (win64 - Windows 11.0 (22621.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i7-12700, instruction set [SSE2|AVX|AVX2]
+Thread count: 12 physical cores, 20 logical processors, using up to 20 threads
+
+Optimize a model with 5052743 rows, 5902 columns and 10108576 nonzeros
+Model fingerprint: 0x9c5bfb32
+Variable types: 0 continuous, 5902 integer (5902 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+00]
+Found heuristic solution: objective -0.0000000
+Presolve removed 5026698 rows and 0 columns
+Presolve time: 1.09s
+Presolved: 26045 rows, 5902 columns, 55180 nonzeros
+Variable types: 0 continuous, 5902 integer (5902 binary)
+Found heuristic solution: objective 560.0000000
+
+Root relaxation: objective 6.743333e+02, 4156 iterations, 0.03 seconds (0.02 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  674.33333    0   53  560.00000  674.33333  20.4%     -    1s
+H    0     0                     672.0000000  674.33333  0.35%     -    1s
+     0     0     cutoff    0       672.00000  672.00000  0.00%     -    2s
+
+Cutting planes:
+  Gomory: 4
+  Clique: 5
+  MIR: 1
+  Zero half: 16
+
+Explored 1 nodes (6477 simplex iterations) in 2.12 seconds (2.09 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 4: 672 560 7 -0 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 6.720000000000e+02, best bound 6.720000000000e+02, gap 0.0000%
+
+User-callback calls 636, time in user-callback 0.00 sec
