@@ -1,0 +1,9 @@
+{
+    "slew_rate": 0.5,
+    "buffer_t0": 15.0,
+    "buffer_t1": 5.0,
+    "min_elevation": 30.0,
+    "min_obs_duration": 60.0,
+    "exposure_duration": 45.0,
+    "jd0_ref": 2460559.5
+}

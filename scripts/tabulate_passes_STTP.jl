@@ -13,7 +13,7 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 
 # load config jsons
-config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
+config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope_slow.json"))
 config = JSON.parsefile(joinpath(@__DIR__, "configs/config_STTP1.json"))
 target_choices = ["A", "S1", "S2"]
 

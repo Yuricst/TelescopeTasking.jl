@@ -54,7 +54,7 @@ tles_globalstar = [tle for tle in tles if occursin("GLOBALSTAR", tle.name)]
 tles_iridium = [tle for tle in tles if occursin("IRIDIUM", tle.name)]
 tles_orbcomm = [tle for tle in tles if occursin("ORBCOMM", tle.name)]
 tles_list = [tles_globalstar, tles_iridium, tles_orbcomm]
-fontsize = 20
+fontsize = 26
 
 fig_en = Figure(size=(500,400))
 ax_en = Axis(fig_en[1,1];
@@ -97,6 +97,6 @@ for (idx,(tles, name)) in enumerate(zip(tles_list, names))
 end
 axislegend(ax_en, position=:cb, labelsize=fontsize-5)
 
-save(joinpath(@__DIR__, "plots", "targets_orbits_en.png"), fig_en)
-save(joinpath(@__DIR__, "plots", "targets_orbits_iW.png"), fig_iW)
+save(joinpath(@__DIR__, "plots", "targets_orbits_en_A.png"), fig_en)
+save(joinpath(@__DIR__, "plots", "targets_orbits_iW_A.png"), fig_iW)
 display(fig_en)

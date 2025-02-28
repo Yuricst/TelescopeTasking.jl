@@ -30,8 +30,9 @@ function main()
 
     for config_filename in config_filenames, target_choice in ["A", "S1", "S2"]
         # load config jsons
-        config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
+        config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope_slow.json"))
         config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
+        save_dir = "solutions_JASS_slow"
         
         # load TLE files
         tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
@@ -109,7 +110,7 @@ function main()
                 _Y,
             )
             _solution_dict["solve_time"] = solve_time
-            open(joinpath(@__DIR__, "solutions", "solution_$(_experiment_name)_greedy.json"), "w") do io
+            open(joinpath(@__DIR__, save_dir, "solution_$(_experiment_name)_greedy.json"), "w") do io
                 write(io, JSON.json(_solution_dict))
             end
         end

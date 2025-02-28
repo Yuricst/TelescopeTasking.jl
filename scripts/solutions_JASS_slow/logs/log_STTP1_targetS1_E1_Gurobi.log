@@ -1,0 +1,55 @@
+
+Gurobi 11.0.2 (win64) logging started Fri Feb 28 11:29:54 2025
+
+Set parameter LogFile to value "C:\Users\yshimane3\Documents\codes\dev-julia\TelescopeTasking.jl\scripts\solutions_JASS_slow\logs\log_STTP1_targetS1_E1_Gurobi.log"
+Set parameter Method to value 0
+
+Gurobi 11.0.2 (win64) logging started Fri Feb 28 11:30:03 2025
+
+Set parameter LogFile to value "C:\Users\yshimane3\Documents\codes\dev-julia\TelescopeTasking.jl\scripts\solutions_JASS_slow\logs\log_STTP1_targetS1_E1_Gurobi.log"
+Gurobi Optimizer version 11.0.2 build v11.0.2rc0 (win64 - Windows 11.0 (22621.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i7-12700, instruction set [SSE2|AVX|AVX2]
+Thread count: 12 physical cores, 20 logical processors, using up to 20 threads
+
+Optimize a model with 2506792 rows, 3590 columns and 5014472 nonzeros
+Model fingerprint: 0xb28048a3
+Variable types: 0 continuous, 3590 integer (3590 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+00]
+Found heuristic solution: objective -0.0000000
+Presolve removed 2480487 rows and 0 columns
+Presolve time: 0.58s
+Presolved: 26305 rows, 3590 columns, 53498 nonzeros
+Variable types: 0 continuous, 3590 integer (3590 binary)
+
+Root relaxation: objective 2.363727e+02, 3233 iterations, 0.05 seconds (0.05 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  236.37271    0  320   -0.00000  236.37271      -     -    1s
+H    0     0                     224.0000000  236.37271  5.52%     -    1s
+H    0     0                     228.0000000  236.37271  3.67%     -    1s
+H    0     0                     229.0000000  232.98036  1.74%     -    1s
+     0     0  232.98036    0  141  229.00000  232.98036  1.74%     -    1s
+H    0     0                     232.0000000  232.98036  0.42%     -    1s
+     0     0  232.98036    0  141  232.00000  232.98036  0.42%     -    1s
+
+Cutting planes:
+  Gomory: 19
+  Clique: 49
+  Zero half: 83
+
+Explored 1 nodes (4551 simplex iterations) in 1.28 seconds (1.18 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 5: 232 229 228 ... -0
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.320000000000e+02, best bound 2.320000000000e+02, gap 0.0000%
+
+User-callback calls 357, time in user-callback 0.00 sec

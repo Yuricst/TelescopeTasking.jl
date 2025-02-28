@@ -1,12 +1,12 @@
 
-Gurobi 11.0.2 (win64) logging started Mon Jan 20 14:47:21 2025
+Gurobi 11.0.2 (win64) logging started Tue Jan 21 22:31:49 2025
 
-Set parameter LogFile to value "log_MTTP4_targetA_E2_Gurobi.log"
+Set parameter LogFile to value "C:\Users\yshimane3\Documents\codes\dev-julia\TelescopeTasking.jl\scripts\solutions_JASS\logs\log_MTTP4_targetA_E2_Gurobi.log"
 Set parameter Method to value 0
 
-Gurobi 11.0.2 (win64) logging started Mon Jan 20 14:47:21 2025
+Gurobi 11.0.2 (win64) logging started Tue Jan 21 22:31:49 2025
 
-Set parameter LogFile to value "log_MTTP4_targetA_E2_Gurobi.log"
+Set parameter LogFile to value "C:\Users\yshimane3\Documents\codes\dev-julia\TelescopeTasking.jl\scripts\solutions_JASS\logs\log_MTTP4_targetA_E2_Gurobi.log"
 Gurobi Optimizer version 11.0.2 build v11.0.2rc0 (win64 - Windows 11.0 (22621.2))
 
 CPU model: 12th Gen Intel(R) Core(TM) i7-12700, instruction set [SSE2|AVX|AVX2]
@@ -25,43 +25,7 @@ Presolve removed 29271 rows and 589 columns
 Presolve time: 0.01s
 Presolve: All rows and columns removed
 
-Explored 0 nodes (0 simplex iterations) in 0.02 seconds (0.01 work units)
-Thread count was 1 (of 20 available processors)
-
-Solution count 2: 101 -0 
-
-Optimal solution found (tolerance 1.00e-04)
-Best objective 1.010000000000e+02, best bound 1.010000000000e+02, gap 0.0000%
-
-User-callback calls 339, time in user-callback 0.00 sec
-
-Gurobi 11.0.2 (win64) logging started Tue Jan 21 04:04:45 2025
-
-Set parameter LogFile to value "log_MTTP4_targetA_E2_Gurobi.log"
-Set parameter Method to value 0
-
-Gurobi 11.0.2 (win64) logging started Tue Jan 21 04:04:45 2025
-
-Set parameter LogFile to value "log_MTTP4_targetA_E2_Gurobi.log"
-Gurobi Optimizer version 11.0.2 build v11.0.2rc0 (win64 - Windows 11.0 (22621.2))
-
-CPU model: 12th Gen Intel(R) Core(TM) i7-12700, instruction set [SSE2|AVX|AVX2]
-Thread count: 12 physical cores, 20 logical processors, using up to 20 threads
-
-Optimize a model with 29271 rows, 589 columns and 58923 nonzeros
-Model fingerprint: 0x832307ba
-Variable types: 0 continuous, 589 integer (589 binary)
-Coefficient statistics:
-  Matrix range     [1e+00, 2e+00]
-  Objective range  [1e+00, 1e+00]
-  Bounds range     [0e+00, 0e+00]
-  RHS range        [1e+00, 2e+00]
-Found heuristic solution: objective -0.0000000
-Presolve removed 29271 rows and 589 columns
-Presolve time: 0.02s
-Presolve: All rows and columns removed
-
-Explored 0 nodes (0 simplex iterations) in 0.03 seconds (0.01 work units)
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds (0.01 work units)
 Thread count was 1 (of 20 available processors)
 
 Solution count 2: 101 -0 

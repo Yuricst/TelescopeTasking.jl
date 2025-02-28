@@ -25,7 +25,7 @@ tles_S3 = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25targetS3
 tles_S4 = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25targetS4.txt"), String))
 println("There are $(length(tles)) TLEs in the file")
 
-fontsize = 20
+fontsize = 26
 
 fig_en = Figure(size=(500,400))
 ax_en = Axis(fig_en[1,1];

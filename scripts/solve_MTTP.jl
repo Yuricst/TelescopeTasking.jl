@@ -39,11 +39,11 @@ function main(;target_choice = "A")
     for config_filename in config_filenames
 
         # load config jsons
-        config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
+        config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope_slow.json"))
         config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
         solver_choice = "Gurobi"    # Gurobi or GPLK or HiGHS
         time_limit = 3600           # 600 or 3600, in seconds
-        save_dir = "solutions_JASS"
+        save_dir = "solutions_JASS_slow"
 
         # iterate through num_exposure
         for num_exposure in num_exposures

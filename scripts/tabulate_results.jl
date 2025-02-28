@@ -17,6 +17,7 @@ function main()
     # load config jsons
     instance_names = ["STTP1", "MTTP1", "MTTP2", "MTTP3", "MTTP4"]  #"STTP2", "MTTP1", "MTTP2", "MTTP3"]
     @show target_choice = "S2"
+    @assert target_choice in ["A", "S1", "S2"] "Target choice not recognized!"
 
     experiment_name_dict = Dict(
         "STTP1" => "STTP  ",
@@ -26,7 +27,8 @@ function main()
         "MTTP3" => "MTTP III",
         "MTTP4" => "MTTP IV",
     )
-
+    solutions_dir = "solutions_JASS"
+    
     for instance_name in instance_names
         config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
         config = JSON.parsefile(joinpath(@__DIR__, "configs/config_$(instance_name).json"))
@@ -42,8 +44,8 @@ function main()
             _experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
 
             # load solutions
-            solution_dict = JSON.parsefile(joinpath(@__DIR__, "solutions/solution_$(_experiment_name)_$(_solver_choice).json"))
-            solve_stats = JSON.parsefile(joinpath(@__DIR__, "solutions/solve_stats_$(_experiment_name)_$(_solver_choice).json"))
+            solution_dict = JSON.parsefile(joinpath(@__DIR__, "$(solutions_dir)/solution_$(_experiment_name)_$(_solver_choice).json"))
+            solve_stats = JSON.parsefile(joinpath(@__DIR__, "$(solutions_dir)/solve_stats_$(_experiment_name)_$(_solver_choice).json"))
 
             # instance name, with multicolumn
             if num_exposure == 1
@@ -152,8 +154,8 @@ function main()
 
     # create figure
     println("Creating plot...")
-    fontsize = 24
-    fig_observed = Figure(size=(500,400))
+    fontsize = 28
+    fig_observed = Figure(size=(450,500))
     axis = Axis(fig_observed[1,1];
         xlabel="Number of exposures", ylabel="Number of observed targets",
         xlabelsize=fontsize, ylabelsize=fontsize,
@@ -169,7 +171,7 @@ function main()
         sum_X_per_E = Real[]
         for num_exposure in [1,2,3]
             _experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
-            solution_dict = JSON.parsefile(joinpath(@__DIR__, "solutions/solution_$(_experiment_name)_$(_solver_choice).json"))
+            solution_dict = JSON.parsefile(joinpath(@__DIR__, "$(solutions_dir)/solution_$(_experiment_name)_$(_solver_choice).json"))
             push!(sum_X_per_E, sum(sum(solution_dict["X"])))
         end
         scatterlines!(axis, [1,2,3], sum_X_per_E; 
@@ -179,9 +181,9 @@ function main()
             color=colors[idx],)
     end
     if target_choice == "A"
-        axislegend(axis, position=:lb)
+        axislegend(axis, position=:lb, labelsize=fontsize-3)
     else
-        axislegend(axis, position=:rt)
+        axislegend(axis, position=:rt, labelsize=fontsize-3)
     end
     save(joinpath(@__DIR__, "plots", "NumObserved_vs_E_target$(target_choice).pdf"), fig_observed)
     display(fig_observed)

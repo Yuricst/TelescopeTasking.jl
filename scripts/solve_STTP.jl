@@ -36,12 +36,12 @@ function main(;target_choice = "A")
 
     for config_filename in config_filenames
         # load config jsons
-        config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
+        config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope_slow.json"))
         config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
         solver_choice = "Gurobi"    # Gurobi or GPLK or HiGHS
         num_exposures = [1, 2, 3]
         time_limit = 3600           # 600 or 3600, in seconds
-        save_dir = "solutions_JASS"
+        save_dir = "solutions_JASS_slow"
 
         # iterate through num_exposure
         for num_exposure in num_exposures
@@ -76,6 +76,7 @@ function main(;target_choice = "A")
             println("There are $(length(tles)) TLEs in the file")
 
             # get passes
+            @show config_telescope["slew_rate"]
             slew_rate = deg2rad(config_telescope["slew_rate"])                         # rad/s
             buffer_times = [config_telescope["buffer_t0"], config_telescope["buffer_t1"]]     # times in seconds
             min_elevation = deg2rad(config_telescope["min_elevation"] )            # in radians
