@@ -72,17 +72,20 @@ function main()
     figures = Figure[]
 
     i_choose_list = [1, 15, 30, 45] #, 60, 75]
+    N_passes_to_plot_list = [15,16,16,16]
     for j in 1:length(i_choose_list)
         i_choose = i_choose_list[j]
-        N_passes_to_plot = 15
+        N_passes_to_plot = N_passes_to_plot_list[j]
         final_index = min(i_choose + N_passes_to_plot - 1, length(selected_passes))
         selected_passes_plot = selected_passes[i_choose:final_index]
-        colors = cgrad(:winter, N_passes_to_plot, categorical = true)
+        colors = cgrad(:hawaii, N_passes_to_plot, categorical = true)
+
+        @show i_choose, final_index
 
         # plot of selected passes
         fontsize = 24
-        fig_sol = Figure(size=(500,500);)
-        ax_sol = PolarAxis(fig_sol[1:1,1];
+        fig_sol = Figure(size=(600,500);)
+        ax_sol = PolarAxis(fig_sol[1,1];
             rticks = ([0,30,60], ["90","60","30"]),
             # rlabelsize=fontsize,
             # thetalabelsize=fontsize,
@@ -94,7 +97,14 @@ function main()
         TelescopeTasking.polar_plot_passes!(ax_sol, selected_passes_plot; 
             linewidth=3, color=colors, color_by_target=false, exposure_only=true)
         TelescopeTasking.polar_plot_interpass_slew!(ax_sol, selected_passes_plot, colors; linestyle = :dash)
-        CairoMakie.save(joinpath(@__DIR__, "plots", "slew_STTP_target$(target_choice)_start$j.svg"), fig_sol)
+        Colorbar(fig_sol[1,2], limits = (0.5, N_passes_to_plot+0.5), 
+            colormap = cgrad(:hawaii, N_passes_to_plot, categorical = true),
+            labelsize = fontsize, ticklabelsize = fontsize,
+            ticks = (1:N_passes_to_plot, string.(i_choose:final_index)),
+            label = "Pass number")
+        filepath = joinpath(@__DIR__, "plots", "slew_STTP_target$(target_choice)_start$j.png")
+        CairoMakie.save(filepath, fig_sol)
+        @show filepath
         push!(figures, fig_sol)
     end
     return figures

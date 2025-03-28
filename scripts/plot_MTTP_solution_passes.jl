@@ -6,8 +6,6 @@ using CairoMakie
 using Colors
 using ColorSchemes
 using GeometryBasics
-using GLPK
-using Gurobi
 using HiGHS
 using JSON
 using JuMP
@@ -18,6 +16,8 @@ using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
+CairoMakie.activate!()
+
 include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
 # load Earth parameters
@@ -26,8 +26,8 @@ eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # load config jsons
 telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
-config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP1.json"))
-target_choice = "A"
+config = JSON.parsefile(joinpath(@__DIR__, "configs/config_MTTP3.json"))
+target_choice = "S1"        # "A" or "S1"
 num_exposure = 1
 solver_choice = "Gurobi"
 experiment_name = config["name"] * "_target$(target_choice)_E$(num_exposure)"
@@ -65,6 +65,7 @@ selected_passes_per_telescope = TelescopeTasking.filter([
 
 
 # plot of selected passes
+figures = []
 fontsize = 24
 for q in 1:length(passes_per_telescope)
     _fig_sol = Figure(size=(500,500))
@@ -73,14 +74,25 @@ for q in 1:length(passes_per_telescope)
         rticklabelsize=fontsize-1,
         thetaticklabelsize=fontsize-1,
     )
-    TelescopeTasking.polar_plot_passes!(_ax_polar, passes_per_telescope[q]; color=:grey60, linewidth=0.1)
+    TelescopeTasking.polar_plot_passes!(_ax_polar, passes_per_telescope[q];
+        color=:grey60, linewidth=0.1)
     TelescopeTasking.polar_plot_passes!(_ax_polar, selected_passes_per_telescope[q]; 
-        linewidth=1.5, color_by_target=true, exposure_only=true)
+        linewidth=1.5, color_by_target=true, exposure_only=true, cgrad_designator=:phase)
+
+    # Colorbar(_fig_sol[1,2],
+    #     limits = (0.5, N_passes_to_plot+0.5), 
+    #     colormap = cgrad(:winter, N_passes_to_plot, categorical = true),
+    #     labelsize = fontsize, ticklabelsize = fontsize,
+    #     ticks = (1:N_passes_to_plot, string.(i_choose:final_index)),
+    #     label = "Pass number")
 
     # saveplot
     filename = "passes_polar_$(experiment_name)_$(solver_choice)_telescope$q.png"
     save(joinpath(@__DIR__, "plots", filename), _fig_sol)
     @printf("Saved %s\n", filename)
+
+    # list of figures
+    push!(figures, _fig_sol)
 end
 
 # plot of selected passes
