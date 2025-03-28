@@ -16,7 +16,7 @@ function main()
 
     # load config jsons
     instance_names = ["STTP1", "MTTP1", "MTTP2", "MTTP3", "MTTP4"]  #"STTP2", "MTTP1", "MTTP2", "MTTP3"]
-    @show target_choice = "S2"
+    @show target_choice = "S1"
     @assert target_choice in ["A", "S1", "S2"] "Target choice not recognized!"
 
     experiment_name_dict = Dict(
@@ -165,7 +165,7 @@ function main()
     _solver_choice = "Gurobi"
 
     markers = [:circle, :rect, :diamond, :vline, :hline]
-    colors = cgrad(:hawaii, length(instance_names)+1, categorical=true)
+    colors = cgrad(:roma, length(instance_names), categorical=true)
     for (idx,instance_name) in enumerate(instance_names)
         config = JSON.parsefile(joinpath(@__DIR__, "configs/config_$(instance_name).json"))
         sum_X_per_E = Real[]
