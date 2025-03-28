@@ -2,7 +2,9 @@
 
 Solve the short-term telescope tasking problem for single or multiple telescopes via a job-shop scheduling problem (JSSP) approach. 
 
-[2025 AAS/AIAA paper (best paper award)](https://s3.amazonaws.com/amz.xcdsystem.com/A464D031-C624-C138-7D0E208E29BC4EDD_abstract_File24835/PreprintPaperUploadPDF_321_0103063552.pdf)
+[2025 AAS/AIAA Space Flight Mechanics paper](https://s3.amazonaws.com/amz.xcdsystem.com/A464D031-C624-C138-7D0E208E29BC4EDD_abstract_File24835/PreprintPaperUploadPDF_321_0103063552.pdf)
+
+![Observation in progress](scripts/plots/ecef_solution_ecef_STTP1_targetA_E1_Gurobi_az210.gif)
 
 ![Image Description](examples/example_STTP_solution.png)
 
