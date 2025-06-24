@@ -12,6 +12,7 @@ using JuMP
 using LinearAlgebra
 using ProgressMeter: @showprogress
 using Printf: @printf
+using Test
 using SatelliteToolboxTle
 using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
@@ -77,6 +78,6 @@ include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
     # solve problem
     solver = HiGHS.Optimizer
-    X, Y, status = TelescopeTasking.solve(problem, solver; verbose=false)
-    @test status == MOI.OPTIMAL
+    X, Y, status = TelescopeTasking.solve(problem, solver; verbose=false, equality_observation_constraint=false)
+    @test status["status"] == MOI.OPTIMAL
 end

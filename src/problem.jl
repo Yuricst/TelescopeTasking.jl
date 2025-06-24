@@ -95,6 +95,7 @@ Instantiate JuMP model and solve single telescope scheduling problem.
 function solve(problem::TelescopeTaskingProblem, solver;
     verbose::Bool = true,
     bias_objective::Bool = false,
+    equality_observation_constraint::Bool = false,
 )
     if problem.m == 0 
         println("WARNING: no targets detected!")
@@ -113,8 +114,13 @@ function solve(problem::TelescopeTaskingProblem, solver;
     @variable(model, X[1:problem.m], Bin);      # whether target k is observed (sufficiently many times)
     @printf("Created variables; %1.4f sec\n", time() - tstart)
 
-    @constraint(model, sufficient_exposure[k=1:problem.m], 
-                sum(problem.A[i,k] * Y[i] for i in 1:problem.n) >= problem.num_exposure * X[k])
+    if equality_observation_constraint
+        @constraint(model, sufficient_exposure[k=1:problem.m], 
+            sum(problem.A[i,k] * Y[i] for i in 1:problem.n) == problem.num_exposure * X[k])
+    else
+        @constraint(model, sufficient_exposure[k=1:problem.m], 
+                    sum(problem.A[i,k] * Y[i] for i in 1:problem.n) >= problem.num_exposure * X[k])
+    end
     @printf("Created sufficient exposure constraint; %1.4f sec\n", time() - tstart)
 
     @constraint(model, transition_feasibility[i=1:problem.n-1, j=i+1:problem.n], 

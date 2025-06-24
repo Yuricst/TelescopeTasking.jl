@@ -36,7 +36,7 @@ for config_filename in config_filenames
     # load config jsons
     config_telescope = JSON.parsefile(joinpath(@__DIR__, "configs/config_telescope.json"))
     config = JSON.parsefile(joinpath(@__DIR__, "configs", config_filename))
-    target_choice = "S1"
+    target_choice = "A" #"S1"
     solver_choice = "Gurobi"
     num_exposures = [1, 2, 3]
 
@@ -131,10 +131,13 @@ for config_filename in config_filenames
             ylabelsize = fontsize,
             xticklabelsize = fontsize-2,
             yticklabelsize = fontsize-2,
-            xlabel=L"Pass $i$", 
-            ylabel=L"Target $k$", 
+            # xlabel=L"Pass $i$", 
+            # ylabel=L"Target $k$", 
+            xlabel=L"Target $k$", 
+            ylabel=L"Pass $i$", 
             yreversed=true)
-        spy!(ax_spy_A, problem.A) #transpose(problem.A))
+        #spy!(ax_spy_A, problem.A) #transpose(problem.A))
+        spy!(ax_spy_A, transpose(problem.A))
         save(joinpath(@__DIR__, "plots",
             "spy_A_$_experiment_name.png"), fig_spy_A)
     end
