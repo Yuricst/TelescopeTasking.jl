@@ -95,6 +95,7 @@ Instantiate JuMP model and solve single telescope scheduling problem.
 function solve(problem::TelescopeTaskingProblem, solver;
     verbose::Bool = true,
     bias_objective::Bool = false,
+    get_model::Bool = false,
 )
     if problem.m == 0 
         println("WARNING: no targets detected!")
@@ -129,6 +130,10 @@ function solve(problem::TelescopeTaskingProblem, solver;
 
     if verbose
         @printf("Model created; elapsed time; %1.4f sec\n", time() - tstart)
+    end
+    
+    if get_model == true
+        return model
     end
 
     # solve problem
@@ -286,6 +291,7 @@ function solve(
     solver;
     verbose::Bool = true,
     bias_objective::Bool = false,
+    get_model::Bool = false,
 )
     # start measuring time
     tstart = time()
@@ -329,6 +335,10 @@ function solve(
 
     if verbose
         @printf("Model created; elapsed time; %1.4f sec\n", time() - tstart)
+    end
+
+    if get_model == true
+        return model
     end
 
     # solve problem
