@@ -47,7 +47,7 @@ if solver_choice == "Gurobi"
     solver = MOI.OptimizerWithAttributes(
         Gurobi.Optimizer,
         "TimeLimit" => time_limit,
-        "LogFile" => filepath_log,
+        # "LogFile" => filepath_log,
         "Method" => 0,
     )
 elseif solver_choice == "GLPK"
