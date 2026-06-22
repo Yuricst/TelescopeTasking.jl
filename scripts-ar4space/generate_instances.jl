@@ -17,7 +17,7 @@ using SatelliteToolboxSgp4
 using SatelliteToolboxTransformations
 
 
-if !@isdefined(passes_per_telescope)
+if !@isdefined(passes_per_telescope__)
     include(joinpath(@__DIR__, "../src/TelescopeTasking.jl"))
 
     # load Earth parameters
@@ -26,7 +26,7 @@ if !@isdefined(passes_per_telescope)
     eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
     # choose instance 
-    target_choice = "S2"     # A or S1 or S2
+    target_choice = "debris"     # A or S1 or S2 or debris
     config_filename = "config_MTTP4.json"
     num_exposure = 1       # 1, 2, or 3
 
@@ -60,7 +60,11 @@ if !@isdefined(passes_per_telescope)
     end
 
     # load TLE files
-    tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
+    if target_choice == "debris"
+        tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "$(target_choice).txt"), String))
+    else
+        tles = read_tles(read(joinpath(@__DIR__, "..", "data", "tles", "AAS25target$(target_choice).txt"), String))
+    end
     println("There are $(length(tles)) TLEs in the file")
 
     # get passes
@@ -154,7 +158,7 @@ function dropout_passes(passes, ID)
     return TelescopeTasking.sort(passes[indices])
 end
 
-
+save_directory = joinpath(@__DIR__, "problem-data-test", target_choice)
 @showprogress for ID in 1:100
     # keep ceil(ID/100) fraction of passes per telescope (unique, time-sorted)
     if ID < 100
@@ -195,13 +199,14 @@ end
     )
 
     _save_instance_file = "instance_ID$(ID).json"
-    open(joinpath(@__DIR__, "problem-data-test", target_choice, _save_instance_file), "w") do io
+    open(joinpath(save_directory, _save_instance_file), "w") do io
         write(io, JSON.json(_instance_file))
     end
-    _xz_file = joinpath(@__DIR__, "problem-data-test", target_choice, _save_instance_file * ".xz")
+    _xz_file = joinpath(save_directory, _save_instance_file * ".xz")
     if isfile(_xz_file)
         rm(_xz_file)
     end
-    run(`xz $(joinpath(@__DIR__, "problem-data-test", target_choice, _save_instance_file))`)
+    run(`xz $(joinpath(save_directory, _save_instance_file))`)
     # println("Saved instance file to $(_save_instance_file).xz!")
 end
+println("Saved instances to $(save_directory)!")
