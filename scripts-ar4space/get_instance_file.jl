@@ -25,8 +25,8 @@ eop_file = joinpath(@__DIR__, "..", "data", "eop_iau1980", "finals.all.csv")
 eop_iau1980 = read_iers_eop(eop_file, Val(:IAU1980))
 
 # choose instance 
-target_choice = "S1"
-config_filename = "config_MTTP4.json"
+target_choice = "A"     # A or S1 or S2
+config_filename = "config_MTTP1.json"
 num_exposure = 1       # 1, 2, or 3
 
 # load config jsons
@@ -73,8 +73,10 @@ observer_lla_per_telescope = Vector[]
 jd0_obs_per_telescope = Real[]
 obs_duration_per_telescope = Real[]
 jd0_ref_per_telescope = Real[]
-for observer in config["observers"]
+
+if occursin("STTP", config["name"])
     # get observer location
+    observer = config["observer"]
     observer_lat = deg2rad(observer["latitude"])          # degrees --> radians
     observer_lon = deg2rad(observer["longitude"])         # degrees --> radians
     observer_alt = observer["altitude"]                   # meters
@@ -82,7 +84,7 @@ for observer in config["observers"]
     push!(observer_lla_per_telescope, observer_lla)
 
     # initial epoch of local nightfall
-    jd0_ref = observer["jd0_ref"]
+    jd0_ref = config_telescope["jd0_ref"]
     @assert maximum([tle_epoch(tle) for tle in tles]) <= jd0_ref "TLEs are later than reference JD!"
     jds_night = TelescopeTasking.earliest_night(jd0_ref, observer_lla, eop_iau1980)
     jd0_obs = jds_night[1]
@@ -93,6 +95,28 @@ for observer in config["observers"]
 
     @printf("Night for observer in %s starts at MJD %1.3f and lasts %1.2f hours\n", 
         observer["city"], jd0_obs - 2400000.5, obs_duration/3600)
+else
+    for observer in config["observers"]
+        # get observer location
+        observer_lat = deg2rad(observer["latitude"])          # degrees --> radians
+        observer_lon = deg2rad(observer["longitude"])         # degrees --> radians
+        observer_alt = observer["altitude"]                   # meters
+        observer_lla = [observer_lat, observer_lon, observer_alt]
+        push!(observer_lla_per_telescope, observer_lla)
+
+        # initial epoch of local nightfall
+        jd0_ref = observer["jd0_ref"]
+        @assert maximum([tle_epoch(tle) for tle in tles]) <= jd0_ref "TLEs are later than reference JD!"
+        jds_night = TelescopeTasking.earliest_night(jd0_ref, observer_lla, eop_iau1980)
+        jd0_obs = jds_night[1]
+        obs_duration = 86400 * (jds_night[2] - jds_night[1])
+        push!(jd0_obs_per_telescope, jd0_obs)
+        push!(obs_duration_per_telescope, obs_duration)
+        push!(jd0_ref_per_telescope, jd0_ref)
+
+        @printf("Night for observer in %s starts at MJD %1.3f and lasts %1.2f hours\n", 
+            observer["city"], jd0_obs - 2400000.5, obs_duration/3600)
+    end
 end
 
 # create passes (irrespective of number of exposures)
